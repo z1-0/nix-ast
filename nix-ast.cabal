@@ -1,0 +1,60 @@
+cabal-version:   3.4
+name:            nix-ast
+
+-- x-release-please-start-version
+version:         0.1.0
+-- x-release-please-end
+
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          zion
+maintainer:      ox7a696f6e@outlook.com
+extra-doc-files: CHANGELOG.md
+
+common std
+  default-language: GHC2021
+  ghc-options:      -Wall
+  build-depends:
+    , base        >=4.18 && <4.19
+    , bytestring  >=0.11 && <0.12
+    , text        >=2.0  && <2.1
+
+common dep
+  build-depends:
+    , aeson     >=2.1  && <2.2
+    , data-fix  >=0.3  && <0.4
+    , hnix      >=0.17 && <0.18
+
+library
+  import:          std
+  import:          dep
+  exposed-modules:
+    NixAST
+    NixAST.Convert
+    NixAST.Types
+
+  hs-source-dirs:  src
+  build-depends:
+    , megaparsec     >=9.5 && <9.6
+    , prettyprinter  >=1.7 && <1.8
+
+executable nix-ast
+  import:         std
+  main-is:        Main.hs
+  hs-source-dirs: app
+  build-depends:
+    , nix-ast
+    , optparse-applicative  >=0.18 && <0.19
+
+test-suite tests
+  import:         std
+  import:         dep
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  build-depends:
+    , nix-ast
+    , QuickCheck        >=2.14
+    , tasty             >=1.4
+    , tasty-hunit       >=0.10
+    , tasty-quickcheck  >=0.10

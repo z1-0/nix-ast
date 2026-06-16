@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0](https://github.com/z1-0/nix-ast/compare/v0.2.0...v0.1.0) (2026-06-16)
+
+
+### Miscellaneous Chores
+
+* release 0.1.0 ([0f20f63](https://github.com/z1-0/nix-ast/commit/0f20f63d38c249e86300ece26dbb64fb74bb6bc8))
+
 ## [0.2.0](https://github.com/z1-0/nix-ast/compare/v0.1.2...v0.2.0) (2026-06-16)
 
 

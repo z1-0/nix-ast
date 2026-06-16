@@ -20,4 +20,9 @@ in {
     runCommand "nix-ast-gen" {
       nativeBuildInputs = [packages.${system}.nix-ast];
     } "nix-ast gen -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
+
+  syntax = import ./lib/ast/syntax.nix;
+  core = import ./lib/ast/core.nix;
+  pass = import ./lib/ast/pass.nix;
+  analysis = import ./lib/ast/analysis.nix;
 }

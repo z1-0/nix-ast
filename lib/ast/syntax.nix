@@ -6,7 +6,7 @@
   mkConstant = atom: { tag = "Constant"; inherit atom; };
   mkEnvPath = path: { tag = "EnvPath"; inherit path; };
   mkHasAttr = expr: attrPath: { tag = "HasAttr"; inherit expr attrPath; };
-  mkIf = cond: then_: else_: { tag = "If"; inherit cond; "then" = then_; "else" = else_; };
+  mkIf = cond: then_: else_: { tag = "If"; inherit cond then_ else_; };
   mkLet = bindings: body: { tag = "Let"; inherit bindings body; };
   mkList = items: { tag = "List"; inherit items; };
   mkLiteralPath = path: { tag = "LiteralPath"; inherit path; };
@@ -64,8 +64,8 @@
   getHasAttrExpr = node: node.expr;
   getHasAttrPath = node: node.path;
   getIfCond = node: node.cond;
-  getIfThen = node: node."then";
-  getIfElse = node: node."else";
+  getIfThen = node: node.then_;
+  getIfElse = node: node.else_;
   getLetBindings = node: node.bindings;
   getLetBody = node: node.body;
   getListItems = node: node.items;

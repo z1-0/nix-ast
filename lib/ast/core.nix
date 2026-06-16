@@ -11,11 +11,11 @@ let
     else if tag == "Constant" then []
     else if tag == "EnvPath" then []
     else if tag == "HasAttr" then [ node.expr ]
-    else if tag == "If" then [ node.cond node."then" node."else" ]
+    else if tag == "If" then [ node.cond node.then_ node.else_ ]
     else if tag == "Let" then [ node.body ]
     else if tag == "List" then node.items
     else if tag == "LiteralPath" then []
-    else if tag == "Select" then [ node.expr ] ++ (if node.default != null then [ node.default ] else [])
+    else if tag == "Select" then [ node.expr ] ++ (if node._default != null then [ node._default ] else [])
     else if tag == "Set" then
       let bindingExprs = builtins.filter (b: b ? tag && b.tag == "NamedVar") node.bindings;
       in builtins.map (b: b.value) bindingExprs
@@ -34,12 +34,12 @@ let
     else if tag == "App" then node // { func = builtins.elemAt cs 0; arg = builtins.elemAt cs 1; }
     else if tag == "Assert" then node // { cond = builtins.elemAt cs 0; body = builtins.elemAt cs 1; }
     else if tag == "Binary" then node // { left = builtins.elemAt cs 0; right = builtins.elemAt cs 1; }
-    else if tag == "If" then node // { cond = builtins.elemAt cs 0; "then" = builtins.elemAt cs 1; "else" = builtins.elemAt cs 2; }
+    else if tag == "If" then node // { cond = builtins.elemAt cs 0; then_ = builtins.elemAt cs 1; else_ = builtins.elemAt cs 2; }
     else if tag == "Let" then node // { body = builtins.head cs; }
     else if tag == "List" then node // { items = cs; }
     else if tag == "Select" then
-      if node.default != null
-      then node // { expr = builtins.head cs; default = builtins.elemAt cs 1; }
+      if node._default != null
+      then node // { expr = builtins.head cs; _default = builtins.elemAt cs 1; }
       else node // { expr = builtins.head cs; }
     else if tag == "Unary" then node // { arg = builtins.head cs; }
     else if tag == "With" then node // { namespace = builtins.elemAt cs 0; body = builtins.elemAt cs 1; }

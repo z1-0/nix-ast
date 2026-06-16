@@ -33,7 +33,8 @@ in
   removeBindings = names: ast:
     let
       keepBinding = binding:
-        !(binding ? tag && binding.tag == "NamedVar" && builtins.elem (s.getNamedVarAttrPath binding) names);
+        let pathNames = map (k: k.contents) (s.getNamedVarAttrPath binding); in
+        !(binding ? tag && binding.tag == "NamedVar" && builtins.all (n: !(builtins.elem n names)) pathNames);
     in
     if s.isLet ast
     then ast // { bindings = builtins.filter keepBinding (s.getLetBindings ast); }

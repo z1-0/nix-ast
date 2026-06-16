@@ -5,12 +5,12 @@
   mkBinary = op: left: right: { tag = "Binary"; inherit op left right; };
   mkConstant = atom: { tag = "Constant"; inherit atom; };
   mkEnvPath = path: { tag = "EnvPath"; inherit path; };
-  mkHasAttr = expr: path: { tag = "HasAttr"; inherit expr path; };
+  mkHasAttr = expr: attrPath: { tag = "HasAttr"; inherit expr attrPath; };
   mkIf = cond: then_: else_: { tag = "If"; inherit cond; "then" = then_; "else" = else_; };
   mkLet = bindings: body: { tag = "Let"; inherit bindings body; };
   mkList = items: { tag = "List"; inherit items; };
   mkLiteralPath = path: { tag = "LiteralPath"; inherit path; };
-  mkSelect = expr: path: default: { tag = "Select"; inherit expr path default; };
+  mkSelect = expr: selectPath: _default: { tag = "Select"; inherit expr selectPath _default; };
   mkSet = rec_: bindings: { tag = "Set"; "rec" = rec_; inherit bindings; };
   mkStr = str: { tag = "Str"; inherit str; };
   mkSym = name: { tag = "Sym"; inherit name; };
@@ -21,8 +21,8 @@
   mkInherit = scope: names: { tag = "Inherit"; inherit scope names; };
   mkNamedVar = attrPath: value: { tag = "NamedVar"; inherit attrPath value; };
 
-  mkParam = name: { tag = "Param"; inherit name; };
-  mkParamSet = params: ellipsis: { tag = "ParamSet"; inherit params ellipsis; };
+  mkParam = paramName: { tag = "Single"; inherit paramName; };
+  mkParamSet = paramArgs: paramList: variadic: { tag = "ParamSet"; inherit paramArgs paramList variadic; };
 
   getExprKind = node: node.tag;
 

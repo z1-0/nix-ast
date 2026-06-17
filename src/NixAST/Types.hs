@@ -11,13 +11,17 @@ module NixAST.Types (
     Key (..),
     Params (..),
     String (..),
+    VarName,
 ) where
 
 import Data.Aeson (FromJSON, ToJSON)
 import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
 import GHC.Generics (Generic)
+import Nix.Expr.Types qualified as HT
 import Prelude hiding (String)
+
+type VarName = HT.VarName
 
 data Expr
     = Abs {params :: Params, body :: Expr}
@@ -34,8 +38,8 @@ data Expr
     | Select {expr :: Expr, selectPath :: NE.NonEmpty Key, _default :: Maybe Expr}
     | Set {rec :: Bool, bindings :: [Binding]}
     | Str {str :: String}
-    | Sym {name :: Text}
-    | SynHole {name :: Text}
+    | Sym {name :: VarName}
+    | SynHole {name :: VarName}
     | Unary {op :: Text, arg :: Expr}
     | With {namespace :: Expr, body :: Expr}
     deriving (Generic, Show, Eq)
@@ -51,20 +55,20 @@ data Atom
     deriving anyclass (ToJSON, FromJSON)
 
 data Binding
-    = Inherit {scope :: Maybe Expr, names :: [Text]}
+    = Inherit {scope :: Maybe Expr, names :: [VarName]}
     | NamedVar {attrPath :: NE.NonEmpty Key, value :: Expr}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data Key
     = DynamicKey (Antiquoted String)
-    | StaticKey Text
+    | StaticKey VarName
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data Params
-    = ParamSet {paramArgs :: Maybe Text, paramList :: [(Text, Maybe Expr)], variadic :: Bool}
-    | Single {paramName :: Text}
+    = ParamSet {paramArgs :: Maybe VarName, paramList :: [(VarName, Maybe Expr)], variadic :: Bool}
+    | Single {paramName :: VarName}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 

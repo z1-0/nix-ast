@@ -238,7 +238,7 @@ genAtom =
             ]
 
 genSym :: Gen Expr
-genSym = Sym . T.pack <$> listOf1 (choose ('a', 'z'))
+genSym = Sym . HT.VarName . T.pack <$> listOf1 (choose ('a', 'z'))
 
 genStr :: Gen Expr
 genStr = Str . DoubleQuoted . pure . Plain . T.pack <$> listOf1 (choose ('a', 'z'))
@@ -269,7 +269,7 @@ genSet n = Set False <$> listOf (genBinding (n `div` 2))
 
 genBinding :: Int -> Gen Binding
 genBinding n = do
-    name <- T.pack <$> listOf1 (choose ('a', 'z'))
+    name <- HT.VarName . T.pack <$> listOf1 (choose ('a', 'z'))
     NamedVar (NE.singleton (StaticKey name)) <$> genExpr (n `div` 2)
 
 ----------------------------------------------------------------------

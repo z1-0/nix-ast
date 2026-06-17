@@ -59,7 +59,7 @@ rec {
   getEnvPathPath      = node: node.path;
   getExprKind         = node: node.tag;
   getHasAttrExpr      = node: node.expr;
-  getHasAttrPath      = node: node.path;
+  getHasAttrPath = node: node.attrPath;
   getIfCond           = node: node.cond;
   getIfElse           = node: node.else_;
   getIfThen           = node: node.then_;
@@ -71,9 +71,9 @@ rec {
   getLiteralPathPath  = node: node.path;
   getNamedVarAttrPath = node: node.attrPath;
   getNamedVarValue    = node: node.value;
-  getSelectDefault    = node: node.default;
+  getSelectDefault = node: node._default;
   getSelectExpr       = node: node.expr;
-  getSelectPath       = node: node.path;
+  getSelectPath = node: node.selectPath;
   getSetBindings      = node: node.bindings;
   getSetRec           = node: node."rec";
   getStrStr           = node: node.str;

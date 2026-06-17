@@ -36,7 +36,7 @@ in {
     keepBinding = binding: let
       pathNames = map (k: k.contents) (s.getNamedVarAttrPath binding);
     in
-      !(binding ? tag && binding.tag == "NamedVar" && builtins.all (n: !(builtins.elem n names)) pathNames);
+      !(binding ? tag && binding.tag == "NamedVar" && builtins.all (n: builtins.elem n names) pathNames);
   in
     if s.isLet ast
     then ast // {bindings = builtins.filter keepBinding (s.getLetBindings ast);}
@@ -53,7 +53,7 @@ in {
         else if s.isSet node
         then s.getSetBindings node
         else [];
-      found = builtins.filter (b: b ? tag && b.tag == "NamedVar" && s.getNamedVarAttrPath b == name) bindings;
+      found = builtins.filter (b: b ? tag && b.tag == "NamedVar" && builtins.elem name (map (k: k.contents) (s.getNamedVarAttrPath b))) bindings;
     in
       if found != []
       then builtins.head found
@@ -102,7 +102,7 @@ in {
             then let
               remaining =
                 builtins.filter
-                (b: !(b ? tag && b.tag == "NamedVar" && s.getNamedVarAttrPath b == name))
+                (b: !(b ? tag && b.tag == "NamedVar" && builtins.elem name (map (k: k.contents) (s.getNamedVarAttrPath b))))
                 (s.getLetBindings n);
             in
               if remaining == []

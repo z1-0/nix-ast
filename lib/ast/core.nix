@@ -37,13 +37,13 @@ let
       )
     else if tag == "Set"
     then let
-      bindingExprs = builtins.filter (b: b ? tag && b.tag == "NamedVar") node.bindings;
+      bindingExprs = builtins.filter s.isNamedVar node.bindings;
     in
       builtins.map (b: b.value) bindingExprs
     else if tag == "Str"
     then let
       parts = node.value;
-      antiquoted = builtins.filter (p: p ? tag && p.tag == "Antiquoted") parts;
+      antiquoted = builtins.filter s.isAntiquoted parts;
     in
       builtins.map (p: p.expr) antiquoted
     else if tag == "SynHole"

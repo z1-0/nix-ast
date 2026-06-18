@@ -17,7 +17,7 @@ in {
         then let
           str = s.getStrValue node;
           replacePart = part:
-            if part ? tag && part.tag == "Plain"
+            if s.isPlain part
             then part // {value = builtins.replaceStrings [old] [new] part.value;}
             else part;
         in
@@ -34,9 +34,9 @@ in {
 
   removeBindings = names: ast: let
     keepBinding = binding: let
-      pathNames = map (k: k.keyName) (s.getNamedVarAttrPath binding);
+      pathNames = map s.getStaticKeyName (s.getNamedVarAttrPath binding);
     in
-      !(binding ? tag && binding.tag == "NamedVar" && builtins.all (n: builtins.elem n names) pathNames);
+      !(s.isNamedVar binding && builtins.all (n: builtins.elem n names) pathNames);
   in
     if s.isLet ast
     then ast // {bindings = builtins.filter keepBinding (s.getLetBindings ast);}
@@ -53,7 +53,7 @@ in {
         else if s.isSet node
         then s.getSetBindings node
         else [];
-      found = builtins.filter (b: b ? tag && b.tag == "NamedVar" && builtins.elem name (map (k: k.keyName) (s.getNamedVarAttrPath b))) bindings;
+      found = builtins.filter (b: s.isNamedVar b && builtins.elem name (map s.getStaticKeyName (s.getNamedVarAttrPath b))) bindings;
     in
       if found != []
       then builtins.head found
@@ -102,7 +102,7 @@ in {
             then let
               remaining =
                 builtins.filter
-                (b: !(b ? tag && b.tag == "NamedVar" && builtins.elem name (map (k: k.keyName) (s.getNamedVarAttrPath b))))
+                (b: !(s.isNamedVar b && builtins.elem name (map s.getStaticKeyName (s.getNamedVarAttrPath b))))
                 (s.getLetBindings n);
             in
               if remaining == []

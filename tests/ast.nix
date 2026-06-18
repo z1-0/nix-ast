@@ -14,7 +14,7 @@ let
   nv = name: val: s.mkNamedVar [(s.mkStaticKey name)] val;
 
   allTests = [
-    # ═══ syntax: constructors (20) ═══
+    # ═══ syntax: constructors (22) ═══
     (check "mkAbs" (s.getExprKind (s.mkAbs (s.mkParam "x") (sym "x")) == "Abs"))
     (check "mkApp" (s.getExprKind (s.mkApp (sym "f") (sym "x")) == "App"))
     (check "mkAssert" (s.getExprKind (s.mkAssert (sym "c") (sym "x")) == "Assert"))
@@ -79,18 +79,18 @@ let
     (check "getHasAttrExpr" (s.isSym (s.getHasAttrExpr (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")]))))
     (check "getHasAttrPath" (builtins.length (s.getHasAttrPath (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")])) == 1))
     (check "getIfCond" (s.isSym (s.getIfCond (s.mkIf (sym "c") (sym "t") (sym "f")))))
-    (check "getIfThen" (s.getSymName (s.getIfThenExpr (s.mkIf (sym "c") (sym "t") (sym "f"))) == "t"))
-    (check "getIfElse" (s.getSymName (s.getIfElseExpr (s.mkIf (sym "c") (sym "t") (sym "f"))) == "f"))
+    (check "getIfThen" (s.getSymName (s.getIfThen (s.mkIf (sym "c") (sym "t") (sym "f"))) == "t"))
+    (check "getIfElse" (s.getSymName (s.getIfElse (s.mkIf (sym "c") (sym "t") (sym "f"))) == "f"))
     (check "getLetBindings" (builtins.length (s.getLetBindings (s.mkLet [(nv "x" (sym "1"))] (sym "x"))) == 1))
     (check "getLetBody" (s.getSymName (s.getLetBody (s.mkLet [] (sym "x"))) == "x"))
     (check "getListItems" (builtins.length (s.getListItems (s.mkList [(sym "a") (sym "b")])) == 2))
     (check "getLiteralPathPath" (s.getLiteralPathPath (s.mkLiteralPath "./foo.nix") == "./foo.nix"))
     (check "getSelectExpr" (s.isSym (s.getSelectExpr (s.mkSelect null (sym "x") [(s.mkStaticKey "y")]))))
     (check "getSelectPath" (builtins.length (s.getSelectPath (s.mkSelect null (sym "x") [(s.mkStaticKey "y")])) == 1))
-    (check "getSelectDefault" (s.getSelectDefault (s.mkSelect null (sym "x") [(s.mkStaticKey "y")]) == null))
-    (check "getSetRec" (s.getSetRecursive (s.mkSet true []) == true))
+    (check "getSelectDefaultValue" (s.getSelectDefaultValue (s.mkSelect null (sym "x") [(s.mkStaticKey "y")]) == null))
+    (check "getSetRecursive" (s.getSetRecursive (s.mkSet true []) == true))
     (check "getSetBindings" (builtins.length (s.getSetBindings (s.mkSet false [(nv "a" (sym "1"))])) == 1))
-    (check "getStrStr" (builtins.isList (s.getStrValue (s.mkPlainStr "hello"))))
+    (check "getStrValue" (builtins.isList (s.getStrValue (s.mkPlainStr "hello"))))
     (check "getSymName" (s.getSymName (sym "test") == "test"))
     (check "getSynHoleName" (s.getSynHoleName (s.mkSynHole "a") == "a"))
     (check "getUnaryOp" (s.getUnaryOp (s.mkUnary "!" (sym "x")) == "!"))

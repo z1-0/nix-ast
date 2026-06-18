@@ -7,8 +7,8 @@ let
     letNames =
       builtins.concatMap (
         n:
-          map (b: (builtins.head (s.getNamedVarAttrPath b)).keyName) (
-            builtins.filter (b: s.getExprKind b == "NamedVar") (s.getLetBindings n)
+          map (b: s.getStaticKeyName (builtins.head (s.getNamedVarAttrPath b))) (
+            builtins.filter s.isNamedVar (s.getLetBindings n)
           )
       )
       letNodes;
@@ -16,9 +16,9 @@ let
     absParamNames = node: let
       params = s.getAbsParams node;
     in
-      if s.getExprKind params == "Param"
-      then [params.paramName]
-      else if s.getExprKind params == "ParamSet"
+      if s.isParam params
+      then [s.getParamName params]
+      else if s.isParamSet params
       then map (p: p.name) params.params
       else [];
 
@@ -32,7 +32,7 @@ let
     allSyms =
       c.collect (
         n:
-          if s.getExprKind n == "Sym"
+          if s.isSym n
           then let
             name = s.getSymName n;
           in
@@ -55,7 +55,7 @@ let
         if builtins.isList parts
         then
           map (p:
-            if p.tag == "Plain"
+            if s.isPlain p
             then p.value
             else "")
           parts
@@ -66,9 +66,9 @@ let
   allPaths = ast:
     c.collect (
       n:
-        if s.getExprKind n == "LiteralPath"
+        if s.isLiteralPath n
         then s.getLiteralPathPath n
-        else if s.getExprKind n == "EnvPath"
+        else if s.isEnvPath n
         then s.getEnvPathPath n
         else null
     )

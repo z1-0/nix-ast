@@ -13,33 +13,32 @@ import Nix.Atoms qualified as HT
 import Nix.Expr.Types qualified as HT
 import Nix.Prelude (Path (..))
 import NixAST.Types qualified as NT
-import Prelude hiding (String)
 import Text.Megaparsec (mkPos)
 
 ----------------------------------------------------------------------
 -- HT.NExpr → Expr
 ----------------------------------------------------------------------
 
-toExpr :: HT.NExpr             -> NT.Expr
+toExpr :: HT.NExpr         -> NT.Expr
 toExpr (Fix x) = case x of
-    HT.NAbs params body        -> NT.Abs (toParams params) (toExpr body)
-    HT.NApp f a                -> NT.App (toExpr f) (toExpr a)
-    HT.NAssert c body          -> NT.Assert (toExpr c) (toExpr body)
-    HT.NBinary op l r          -> NT.Binary (binaryOpToText op) (toExpr l) (toExpr r)
-    HT.NConstant a             -> NT.Constant (toAtom a)
-    HT.NEnvPath p              -> NT.EnvPath (coerce p)
-    HT.NHasAttr e attrs        -> NT.HasAttr (toExpr e) (NE.map toKey attrs)
-    HT.NIf c t f               -> NT.If (toExpr c) (toExpr t) (toExpr f)
-    HT.NLet bs body            -> NT.Let (map toBinding bs) (toExpr body)
-    HT.NList xs                -> NT.List (map toExpr xs)
-    HT.NLiteralPath p          -> NT.LiteralPath (coerce p)
-    HT.NSelect def e attrs     -> NT.Select{defaultValue = fmap toExpr def, expr = toExpr e, selectPath = NE.map toKey attrs}
-    HT.NSet r bs               -> NT.Set (r == HT.Recursive) (map toBinding bs)
-    HT.NStr s                  -> NT.Str (toNString s)
-    HT.NSym n                  -> NT.Sym n
-    HT.NSynHole n              -> NT.SynHole n
-    HT.NUnary op a             -> NT.Unary (unaryOpToText op) (toExpr a)
-    HT.NWith ns body           -> NT.With (toExpr ns) (toExpr body)
+    HT.NAbs params body    -> NT.Abs (toParams params) (toExpr body)
+    HT.NApp f a            -> NT.App (toExpr f) (toExpr a)
+    HT.NAssert c body      -> NT.Assert (toExpr c) (toExpr body)
+    HT.NBinary op l r      -> NT.Binary (binaryOpToText op) (toExpr l) (toExpr r)
+    HT.NConstant a         -> NT.Constant (toAtom a)
+    HT.NEnvPath p          -> NT.EnvPath (coerce p)
+    HT.NHasAttr e attrs    -> NT.HasAttr (toExpr e) (NE.map toKey attrs)
+    HT.NIf c t f           -> NT.If (toExpr c) (toExpr t) (toExpr f)
+    HT.NLet bs body        -> NT.Let (map toBinding bs) (toExpr body)
+    HT.NList xs            -> NT.List (map toExpr xs)
+    HT.NLiteralPath p      -> NT.LiteralPath (coerce p)
+    HT.NSelect def e attrs -> NT.Select{defaultValue = fmap toExpr def, expr = toExpr e, selectPath = NE.map toKey attrs}
+    HT.NSet r bs           -> NT.Set (r == HT.Recursive) (map toBinding bs)
+    HT.NStr s              -> NT.Str (toNString s)
+    HT.NSym n              -> NT.Sym n
+    HT.NSynHole n          -> NT.SynHole n
+    HT.NUnary op a         -> NT.Unary (unaryOpToText op) (toExpr a)
+    HT.NWith ns body       -> NT.With (toExpr ns) (toExpr body)
 
 toAtom :: HT.NAtom -> NT.Atom
 toAtom (HT.NBool b)  = NT.Bool b

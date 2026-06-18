@@ -191,10 +191,10 @@ shrinkExpr (List xs) =
     xs ++ [List xs' | xs' <- shrink xs]
 shrinkExpr (Set rec bs) =
     [Set rec bs' | bs' <- shrink bs]
-shrinkExpr (Select d ks def_) =
-    [d]
-        ++ [Select d' ks def_ | d' <- shrink d]
-        ++ [Select d ks def' | def' <- shrink def_]
+shrinkExpr (Select defaultValue e ks) =
+    [e]
+        ++ [Select defaultValue e' ks | e' <- shrink e]
+        ++ [Select defaultValue' e ks | defaultValue' <- shrink defaultValue]
 shrinkExpr (HasAttr e _) =
     [e]
 shrinkExpr (Abs _ b) =

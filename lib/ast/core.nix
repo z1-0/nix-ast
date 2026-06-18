@@ -31,8 +31,8 @@ let
     then
       [node.expr]
       ++ (
-        if node._default != null
-        then [node._default]
+        if node.defaultValue != null
+        then [node.defaultValue]
         else []
       )
     else if tag == "Set"
@@ -43,9 +43,9 @@ let
     else if tag == "Str"
     then let
       parts = node.str;
-      interpolations = builtins.filter (p: p ? tag && p.tag == "Interpolation") parts;
+      antiquoted = builtins.filter (p: p ? tag && p.tag == "Antiquoted") parts;
     in
-      builtins.map (p: p.expr) interpolations
+      builtins.map (p: p.expr) antiquoted
     else if tag == "SynHole"
     then []
     else if tag == "Unary"
@@ -94,12 +94,12 @@ let
     then node // {items = cs;}
     else if tag == "Select"
     then
-      if node._default != null
+      if node.defaultValue != null
       then
         node
         // {
           expr = builtins.head cs;
-          _default = builtins.elemAt cs 1;
+          defaultValue = builtins.elemAt cs 1;
         }
       else node // {expr = builtins.head cs;}
     else if tag == "Unary"

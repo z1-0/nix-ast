@@ -8,9 +8,11 @@ module NixAST.Types (
     Atom (..),
     Binding (..),
     Expr (..),
-    Key (..),
+    KeyName (..),
     Params (..),
     String (..),
+    AttrPath,
+    ParamSet,
     VarName,
 ) where
 
@@ -22,6 +24,8 @@ import Nix.Expr.Types qualified as HT
 import Prelude hiding (String)
 
 type VarName = HT.VarName
+type AttrPath = NE.NonEmpty KeyName
+type ParamSet = HT.ParamSet Expr
 
 data Expr
     = Abs {params :: Params, body :: Expr}
@@ -30,12 +34,12 @@ data Expr
     | Binary {op :: Text, left :: Expr, right :: Expr}
     | Constant {atom :: Atom}
     | EnvPath {path :: FilePath}
-    | HasAttr {expr :: Expr, attrPath :: NE.NonEmpty Key}
+    | HasAttr {expr :: Expr, attrPath :: AttrPath}
     | If {cond :: Expr, then_ :: Expr, else_ :: Expr}
     | Let {bindings :: [Binding], body :: Expr}
     | List {items :: [Expr]}
     | LiteralPath {path :: FilePath}
-    | Select {expr :: Expr, selectPath :: NE.NonEmpty Key, _default :: Maybe Expr}
+    | Select {defaultValue :: Maybe Expr, expr :: Expr, selectPath :: AttrPath}
     | Set {rec :: Bool, bindings :: [Binding]}
     | Str {str :: String}
     | Sym {name :: VarName}
@@ -46,41 +50,41 @@ data Expr
     deriving anyclass (ToJSON, FromJSON)
 
 data Atom
-    = Bool Bool
-    | Float Double
-    | Int Integer
+    = Bool {bool :: Bool}
+    | Float {float :: Double}
+    | Int {int :: Integer}
     | Null
-    | Uri Text
+    | Uri {uri :: Text}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data Binding
     = Inherit {scope :: Maybe Expr, names :: [VarName]}
-    | NamedVar {attrPath :: NE.NonEmpty Key, value :: Expr}
+    | NamedVar {attrPath :: AttrPath, value :: Expr}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
-data Key
-    = DynamicKey (Antiquoted String)
-    | StaticKey VarName
+data KeyName
+    = DynamicKey {antiquoted :: Antiquoted String}
+    | StaticKey {keyName :: VarName}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data Params
-    = ParamSet {paramArgs :: Maybe VarName, paramList :: [(VarName, Maybe Expr)], variadic :: Bool}
-    | Single {paramName :: VarName}
+    = ParamSet {paramSetName :: Maybe VarName, variadic :: Bool, paramList :: ParamSet}
+    | Param {paramName :: VarName}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data String
-    = DoubleQuoted [Antiquoted Text]
-    | Indented Int [Antiquoted Text]
+    = DoubleQuoted {parts :: [Antiquoted Text]}
+    | Indented {indent :: Int, parts :: [Antiquoted Text]}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)
 
 data Antiquoted v
-    = Plain v
+    = Plain {value :: v}
     | EscapedNewline
-    | Interpolation Expr
+    | Antiquoted {expr :: Expr}
     deriving (Generic, Show, Eq)
     deriving anyclass (ToJSON, FromJSON)

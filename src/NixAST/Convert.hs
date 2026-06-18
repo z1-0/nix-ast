@@ -36,7 +36,7 @@ toExpr (Fix x) = case x of
     HT.NLet bs body            -> NT.Let (map toBinding bs) (toExpr body)
     HT.NList xs                -> NT.List (map toExpr xs)
     HT.NLiteralPath p          -> NT.LiteralPath (coerce p)
-    HT.NSelect def e attrs     -> NT.Select (toExpr e) (NE.map toKey attrs) (fmap toExpr def)
+    HT.NSelect def e attrs     -> NT.Select{defaultValue = fmap toExpr def, expr = toExpr e, selectPath = NE.map toKey attrs}
     HT.NSet r bs               -> NT.Set (r == HT.Recursive) (map toBinding bs)
     HT.NStr s                  -> NT.Str (toNString s)
     HT.NSym n                  -> NT.Sym n
@@ -56,7 +56,7 @@ toNString (HT.DoubleQuoted parts) = NT.DoubleQuoted (map toAntiquoted parts)
 toNString (HT.Indented n parts)   = NT.Indented n (map toAntiquoted parts)
 
 toAntiquoted :: HT.Antiquoted Text HT.NExpr -> NT.Antiquoted Text
-toAntiquoted (HT.Antiquoted e) = NT.Interpolation (toExpr e)
+toAntiquoted (HT.Antiquoted e) = NT.Antiquoted (toExpr e)
 toAntiquoted (HT.Plain t)      = NT.Plain t
 toAntiquoted HT.EscapedNewline = NT.EscapedNewline
 
@@ -64,15 +64,15 @@ toBinding :: HT.Binding HT.NExpr -> NT.Binding
 toBinding (HT.Inherit scope names _) = NT.Inherit (fmap toExpr scope) names
 toBinding (HT.NamedVar path val _)   = NT.NamedVar (NE.map toKey path) (toExpr val)
 
-toKey :: HT.NKeyName HT.NExpr -> NT.Key
-toKey (HT.DynamicKey (HT.Antiquoted e)) = NT.DynamicKey (NT.Interpolation (toExpr e))
+toKey :: HT.NKeyName HT.NExpr -> NT.KeyName
+toKey (HT.DynamicKey (HT.Antiquoted e)) = NT.DynamicKey (NT.Antiquoted (toExpr e))
 toKey (HT.DynamicKey (HT.Plain s))      = NT.DynamicKey (NT.Plain (toNString s))
 toKey (HT.DynamicKey HT.EscapedNewline) = NT.DynamicKey NT.EscapedNewline
 toKey (HT.StaticKey n)                  = NT.StaticKey n
 
 toParams :: HT.Params HT.NExpr -> NT.Params
-toParams (HT.Param n)                    = NT.Single n
-toParams (HT.ParamSet args variadic set) = NT.ParamSet args (map convertParam set) isVariadic
+toParams (HT.Param n)                    = NT.Param n
+toParams (HT.ParamSet args variadic set) = NT.ParamSet args isVariadic (map convertParam set)
   where
     convertParam (n, d) = (n, fmap toExpr d)
     isVariadic          = variadic == HT.Variadic
@@ -96,7 +96,7 @@ fromExprF NT.If{..}          = HT.NIf (fromExpr cond) (fromExpr then_) (fromExpr
 fromExprF NT.Let{..}         = HT.NLet (map fromBinding bindings) (fromExpr body)
 fromExprF NT.List{..}        = HT.NList (map fromExpr items)
 fromExprF NT.LiteralPath{..} = HT.NLiteralPath (Path path)
-fromExprF NT.Select{..}      = HT.NSelect (fmap fromExpr _default) (fromExpr expr) (NE.map fromKey selectPath)
+fromExprF NT.Select{..}      = HT.NSelect (fmap fromExpr defaultValue) (fromExpr expr) (NE.map fromKey selectPath)
 fromExprF NT.Set{..}         = HT.NSet (if rec then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
 fromExprF NT.Str{..}         = HT.NStr (fromNString str)
 fromExprF NT.Sym{..}         = HT.NSym name
@@ -116,26 +116,26 @@ fromNString (NT.DoubleQuoted parts) = HT.DoubleQuoted (map fromAntiquoted parts)
 fromNString (NT.Indented n parts)   = HT.Indented n (map fromAntiquoted parts)
 
 fromAntiquoted :: NT.Antiquoted Text -> HT.Antiquoted Text HT.NExpr
-fromAntiquoted (NT.Interpolation e) = HT.Antiquoted (fromExpr e)
-fromAntiquoted (NT.Plain t)         = HT.Plain t
-fromAntiquoted NT.EscapedNewline    = HT.EscapedNewline
+fromAntiquoted (NT.Antiquoted e) = HT.Antiquoted (fromExpr e)
+fromAntiquoted (NT.Plain t)      = HT.Plain t
+fromAntiquoted NT.EscapedNewline = HT.EscapedNewline
 
 fromBinding :: NT.Binding -> HT.Binding HT.NExpr
-fromBinding NT.Inherit{..} = HT.Inherit (fmap fromExpr scope) names dummyPos
+fromBinding NT.Inherit{..}  = HT.Inherit (fmap fromExpr scope) names dummyPos
 fromBinding NT.NamedVar{..} = HT.NamedVar (NE.map fromKey attrPath) (fromExpr value) dummyPos
 
-fromKey :: NT.Key -> HT.NKeyName HT.NExpr
-fromKey (NT.DynamicKey (NT.Interpolation e)) = HT.DynamicKey (HT.Antiquoted (fromExpr e))
-fromKey (NT.DynamicKey (NT.Plain s))         = HT.DynamicKey (HT.Plain (fromNString s))
-fromKey (NT.DynamicKey NT.EscapedNewline)    = HT.DynamicKey HT.EscapedNewline
-fromKey (NT.StaticKey n)                     = HT.StaticKey n
+fromKey :: NT.KeyName -> HT.NKeyName HT.NExpr
+fromKey (NT.DynamicKey (NT.Antiquoted e)) = HT.DynamicKey (HT.Antiquoted (fromExpr e))
+fromKey (NT.DynamicKey (NT.Plain s))      = HT.DynamicKey (HT.Plain (fromNString s))
+fromKey (NT.DynamicKey NT.EscapedNewline) = HT.DynamicKey HT.EscapedNewline
+fromKey (NT.StaticKey n)                  = HT.StaticKey n
 
 fromParams :: NT.Params -> HT.Params HT.NExpr
-fromParams NT.Single{..}   = HT.Param paramName
-fromParams NT.ParamSet{..} = HT.ParamSet paramArgs v (map convertParam paramList)
+fromParams NT.Param{..}    = HT.Param paramName
+fromParams NT.ParamSet{..} = HT.ParamSet paramSetName v (map convertParam paramList)
   where
-    convertParam (name, default') = (name, fmap fromExpr default')
-    v                             = if variadic then HT.Variadic else HT.Closed
+    convertParam (name, defaultValue) = (name, fmap fromExpr defaultValue)
+    v                                 = if variadic then HT.Variadic else HT.Closed
 
 dummyPos :: HT.NSourcePos
 dummyPos = HT.NSourcePos (Path "") (HT.NPos (mkPos 1)) (HT.NPos (mkPos 1))

@@ -7,7 +7,7 @@ let
     letNames =
       builtins.concatMap (
         n:
-          map (b: (builtins.head (s.getNamedVarAttrPath b)).contents) (
+          map (b: (builtins.head (s.getNamedVarAttrPath b)).keyName) (
             builtins.filter (b: s.getExprKind b == "NamedVar") (s.getLetBindings n)
           )
       )
@@ -16,7 +16,7 @@ let
     absParamNames = node: let
       params = s.getAbsParams node;
     in
-      if s.getExprKind params == "Single"
+      if s.getExprKind params == "Param"
       then [params.paramName]
       else if s.getExprKind params == "ParamSet"
       then map (p: p.name) params.params
@@ -56,7 +56,7 @@ let
         then
           map (p:
             if p.tag == "Plain"
-            then p.contents
+            then p.value
             else "")
           parts
         else [parts]

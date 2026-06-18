@@ -16,9 +16,9 @@ rec {
   mkList        = items: mkNode "List" {inherit items;};
   mkLiteralPath = path: mkNode "LiteralPath" {inherit path;};
   mkNamedVar    = attrPath: value: mkNode "NamedVar" {inherit attrPath value;};
-  mkParam       = paramName: mkNode "Single" {inherit paramName;};
-  mkParamSet    = paramArgs: paramList: variadic: mkNode "ParamSet" {inherit paramArgs paramList variadic;};
-  mkSelect      = expr: selectPath: _default: mkNode "Select" {inherit expr selectPath _default;};
+  mkParam       = paramName: mkNode "Param" {inherit paramName;};
+  mkParamSet    = paramSetName: paramList: variadic: mkNode "ParamSet" {inherit paramSetName paramList variadic;};
+  mkSelect      = defaultValue: expr: selectPath: mkNode "Select" {inherit defaultValue expr selectPath;};
   mkSet         = rec_: bindings: mkNode "Set" { "rec" = rec_; inherit bindings; };
   mkStr         = str: mkNode "Str" {inherit str;};
   mkSym         = name: mkNode "Sym" {inherit name;};
@@ -59,7 +59,7 @@ rec {
   getEnvPathPath      = node: node.path;
   getExprKind         = node: node.tag;
   getHasAttrExpr      = node: node.expr;
-  getHasAttrPath = node: node.attrPath;
+  getHasAttrPath      = node: node.attrPath;
   getIfCond           = node: node.cond;
   getIfElse           = node: node.else_;
   getIfThen           = node: node.then_;
@@ -71,9 +71,9 @@ rec {
   getLiteralPathPath  = node: node.path;
   getNamedVarAttrPath = node: node.attrPath;
   getNamedVarValue    = node: node.value;
-  getSelectDefault = node: node._default;
+  getSelectDefault    = node: node.defaultValue;
   getSelectExpr       = node: node.expr;
-  getSelectPath = node: node.selectPath;
+  getSelectPath       = node: node.selectPath;
   getSetBindings      = node: node.bindings;
   getSetRec           = node: node."rec";
   getStrStr           = node: node.str;

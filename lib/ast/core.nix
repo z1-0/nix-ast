@@ -24,7 +24,7 @@ let
     else if tag == "Let"
     then [node.body]
     else if tag == "List"
-    then node.items
+    then node.contents
     else if tag == "LiteralPath"
     then []
     else if tag == "Select"
@@ -42,10 +42,10 @@ let
       builtins.map (b: b.value) bindingExprs
     else if tag == "Str"
     then let
-      parts = node.value;
+      parts = node.contents;
       antiquoted = builtins.filter s.isAntiquoted parts;
     in
-      builtins.map (p: p.expr) antiquoted
+      builtins.map (p: p.contents) antiquoted
     else if tag == "SynHole"
     then []
     else if tag == "Unary"
@@ -91,7 +91,7 @@ let
     else if tag == "Let"
     then node // {body = builtins.head cs;}
     else if tag == "List"
-    then node // {items = cs;}
+    then node // {contents = cs;}
     else if tag == "Select"
     then
       if node.defaultValue != null

@@ -18,7 +18,7 @@ in {
           str = s.getStrValue node;
           replacePart = part:
             if s.isPlain part
-            then part // {value = builtins.replaceStrings [old] [new] part.value;}
+            then part // {contents = builtins.replaceStrings [old] [new] part.contents;}
             else part;
         in
           s.mkStr (builtins.map replacePart str)

@@ -27,18 +27,18 @@ data Expr
     | App {func :: Expr, arg :: Expr}
     | Assert {cond :: Expr, body :: Expr}
     | Binary {op :: Text, left :: Expr, right :: Expr}
-    | Constant {atom :: Atom}
-    | EnvPath {path :: FilePath}
+    | Constant Atom
+    | EnvPath FilePath
     | HasAttr {expr :: Expr, attrPath :: AttrPath}
     | If {cond :: Expr, thenExpr :: Expr, elseExpr :: Expr}
     | Let {bindings :: [Binding], body :: Expr}
-    | List {items :: [Expr]}
-    | LiteralPath {path :: FilePath}
+    | List [Expr]
+    | LiteralPath FilePath
     | Select {defaultValue :: Maybe Expr, expr :: Expr, selectPath :: AttrPath}
     | Set {recursive :: Bool, bindings :: [Binding]}
-    | Str {value :: String}
-    | Sym {name :: VarName}
-    | SynHole {name :: VarName}
+    | Str String
+    | Sym VarName
+    | SynHole VarName
     | Unary {op :: Text, arg :: Expr}
     | With {namespace :: Expr, body :: Expr}
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
@@ -57,17 +57,17 @@ data Binding
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data KeyName
-    = DynamicKey {antiquoted :: Antiquoted String}
-    | StaticKey {keyName :: VarName}
+    = DynamicKey (Antiquoted String)
+    | StaticKey VarName
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data Params
     = ParamSet {paramSetName :: Maybe VarName, variadic :: Bool, params :: ParamSet}
-    | Param {paramName :: VarName}
+    | Param VarName
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data String
-    = DoubleQuoted {parts :: [Antiquoted Text]}
+    = DoubleQuoted [Antiquoted Text]
     | Indented {indent :: Int, parts :: [Antiquoted Text]}
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 

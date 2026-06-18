@@ -79,24 +79,24 @@ fromExpr :: NT.Expr -> HT.NExpr
 fromExpr = Fix . fromExprF
 
 fromExprF :: NT.Expr -> HT.NExprF HT.NExpr
-fromExprF NT.Abs{..}         = HT.NAbs (fromParams params) (fromExpr body)
-fromExprF NT.App{..}         = HT.NApp (fromExpr func) (fromExpr arg)
-fromExprF NT.Assert{..}      = HT.NAssert (fromExpr cond) (fromExpr body)
-fromExprF NT.Binary{..}      = HT.NBinary (fromBinaryOp op) (fromExpr left) (fromExpr right)
-fromExprF NT.Constant{..}    = HT.NConstant (fromAtom atom)
-fromExprF NT.EnvPath{..}     = HT.NEnvPath (Path path)
-fromExprF NT.HasAttr{..}     = HT.NHasAttr (fromExpr expr) (NE.map fromKey attrPath)
-fromExprF NT.If{..}          = HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
-fromExprF NT.Let{..}         = HT.NLet (map fromBinding bindings) (fromExpr body)
-fromExprF NT.List{..}        = HT.NList (map fromExpr items)
-fromExprF NT.LiteralPath{..} = HT.NLiteralPath (Path path)
-fromExprF NT.Select{..}      = HT.NSelect (fmap fromExpr defaultValue) (fromExpr expr) (NE.map fromKey selectPath)
-fromExprF NT.Set{..}         = HT.NSet (if recursive then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
-fromExprF NT.Str{value}      = HT.NStr (fromNString value)
-fromExprF NT.Sym{..}         = HT.NSym name
-fromExprF NT.SynHole{..}     = HT.NSynHole name
-fromExprF NT.Unary{..}       = HT.NUnary (fromUnaryOp op) (fromExpr arg)
-fromExprF NT.With{..}        = HT.NWith (fromExpr namespace) (fromExpr body)
+fromExprF NT.Abs{..}            = HT.NAbs (fromParams params) (fromExpr body)
+fromExprF NT.App{..}            = HT.NApp (fromExpr func) (fromExpr arg)
+fromExprF NT.Assert{..}         = HT.NAssert (fromExpr cond) (fromExpr body)
+fromExprF NT.Binary{..}         = HT.NBinary (fromBinaryOp op) (fromExpr left) (fromExpr right)
+fromExprF (NT.Constant atom)    = HT.NConstant (fromAtom atom)
+fromExprF (NT.EnvPath path)     = HT.NEnvPath (Path path)
+fromExprF NT.HasAttr{..}        = HT.NHasAttr (fromExpr expr) (NE.map fromKey attrPath)
+fromExprF NT.If{..}             = HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
+fromExprF NT.Let{..}            = HT.NLet (map fromBinding bindings) (fromExpr body)
+fromExprF (NT.List items)       = HT.NList (map fromExpr items)
+fromExprF (NT.LiteralPath path) = HT.NLiteralPath (Path path)
+fromExprF NT.Select{..}         = HT.NSelect (fmap fromExpr defaultValue) (fromExpr expr) (NE.map fromKey selectPath)
+fromExprF NT.Set{..}            = HT.NSet (if recursive then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
+fromExprF (NT.Str value)        = HT.NStr (fromNString value)
+fromExprF (NT.Sym name)         = HT.NSym name
+fromExprF (NT.SynHole name)     = HT.NSynHole name
+fromExprF NT.Unary{..}          = HT.NUnary (fromUnaryOp op) (fromExpr arg)
+fromExprF NT.With{..}           = HT.NWith (fromExpr namespace) (fromExpr body)
 
 fromAtom :: NT.Atom -> HT.NAtom
 fromAtom (NT.Bool b)  = HT.NBool b
@@ -125,8 +125,8 @@ fromKey (NT.DynamicKey NT.EscapedNewline) = HT.DynamicKey HT.EscapedNewline
 fromKey (NT.StaticKey n)                  = HT.StaticKey n
 
 fromParams :: NT.Params -> HT.Params HT.NExpr
-fromParams NT.Param{..}    = HT.Param paramName
-fromParams NT.ParamSet{..} = HT.ParamSet paramSetName v (map convertParam params)
+fromParams (NT.Param paramName)       = HT.Param paramName
+fromParams NT.ParamSet{..}            = HT.ParamSet paramSetName v (map convertParam params)
   where
     convertParam (name, defaultValue) = (name, fmap fromExpr defaultValue)
     v                                 = if variadic then HT.Variadic else HT.Closed

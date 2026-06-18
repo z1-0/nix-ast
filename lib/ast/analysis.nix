@@ -17,7 +17,7 @@ let
       params = s.getAbsParams node;
     in
       if s.isParam params
-      then [s.getParamName params]
+      then [(s.getParamName params)]
       else if s.isParamSet params
       then map (p: p.name) params.params
       else [];
@@ -56,7 +56,7 @@ let
         then
           map (p:
             if s.isPlain p
-            then p.value
+            then p.contents
             else "")
           parts
         else [parts]

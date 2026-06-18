@@ -19,7 +19,7 @@ let
     (check "mkApp" (s.getExprKind (s.mkApp (sym "f") (sym "x")) == "App"))
     (check "mkAssert" (s.getExprKind (s.mkAssert (sym "c") (sym "x")) == "Assert"))
     (check "mkBinary" (s.getExprKind (s.mkBinary "+" (sym "a") (sym "b")) == "Binary"))
-    (check "mkConstant" (s.getExprKind (s.mkConstant { tag = "Int"; int = 42; }) == "Constant"))
+    (check "mkConstant" (s.getExprKind (s.mkConstant { tag = "Int"; contents = 42; }) == "Constant"))
     (check "mkEnvPath" (s.getExprKind (s.mkEnvPath "nixpkgs") == "EnvPath"))
     (check "mkHasAttr" (s.getExprKind (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")]) == "HasAttr"))
     (check "mkIf" (s.getExprKind (s.mkIf (sym "c") (sym "t") (sym "f")) == "If"))
@@ -28,7 +28,7 @@ let
     (check "mkLiteralPath" (s.getExprKind (s.mkLiteralPath "./foo.nix") == "LiteralPath"))
     (check "mkSelect" (s.getExprKind (s.mkSelect null (sym "x") [(s.mkStaticKey "y")]) == "Select"))
     (check "mkSet" (s.getExprKind (s.mkSet false []) == "Set"))
-    (check "mkStr" (s.getExprKind (s.mkPlainStr "hi") == "Str"))
+    (check "mkStr" (s.getExprKind (s.mkPlain "hi") == "Str"))
     (check "mkSym" (s.getExprKind (sym "x") == "Sym"))
     (check "mkSynHole" (s.getExprKind (s.mkSynHole "a") == "SynHole"))
     (check "mkUnary" (s.getExprKind (s.mkUnary "!" (sym "x")) == "Unary"))
@@ -43,7 +43,7 @@ let
     (check "isApp" (s.isApp (s.mkApp (sym "f") (sym "x"))))
     (check "isAssert" (s.isAssert (s.mkAssert (sym "c") (sym "x"))))
     (check "isBinary" (s.isBinary (s.mkBinary "+" (sym "a") (sym "b"))))
-    (check "isConstant" (s.isConstant (s.mkConstant { tag = "Int"; int = 1; })))
+    (check "isConstant" (s.isConstant (s.mkConstant { tag = "Int"; contents = 1; })))
     (check "isEnvPath" (s.isEnvPath (s.mkEnvPath "nixpkgs")))
     (check "isHasAttr" (s.isHasAttr (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")])))
     (check "isIf" (s.isIf (s.mkIf (sym "c") (sym "t") (sym "f"))))
@@ -52,7 +52,7 @@ let
     (check "isLiteralPath" (s.isLiteralPath (s.mkLiteralPath "./foo.nix")))
     (check "isSelect" (s.isSelect (s.mkSelect null (sym "x") [(s.mkStaticKey "y")])))
     (check "isSet" (s.isSet (s.mkSet false [])))
-    (check "isStr" (s.isStr (s.mkPlainStr "hi")))
+    (check "isStr" (s.isStr (s.mkPlain "hi")))
     (check "isSym" (s.isSym (sym "x")))
     (check "isSynHole" (s.isSynHole (s.mkSynHole "a")))
     (check "isUnary" (s.isUnary (s.mkUnary "!" (sym "x"))))
@@ -74,7 +74,7 @@ let
     (check "getBinaryOp" (s.getBinaryOp (s.mkBinary "+" (sym "a") (sym "b")) == "+"))
     (check "getBinaryLeft" (s.getSymName (s.getBinaryLeft (s.mkBinary "+" (sym "a") (sym "b"))) == "a"))
     (check "getBinaryRight" (s.getSymName (s.getBinaryRight (s.mkBinary "+" (sym "a") (sym "b"))) == "b"))
-    (check "getConstantAtom" (s.getConstantAtom (s.mkConstant { tag = "Int"; int = 42; }) == { tag = "Int"; int = 42; }))
+    (check "getConstantAtom" (s.getConstantAtom (s.mkConstant { tag = "Int"; contents = 42; }) == { tag = "Int"; contents = 42; }))
     (check "getEnvPathPath" (s.getEnvPathPath (s.mkEnvPath "nixpkgs") == "nixpkgs"))
     (check "getHasAttrExpr" (s.isSym (s.getHasAttrExpr (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")]))))
     (check "getHasAttrPath" (builtins.length (s.getHasAttrPath (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")])) == 1))
@@ -90,7 +90,7 @@ let
     (check "getSelectDefaultValue" (s.getSelectDefaultValue (s.mkSelect null (sym "x") [(s.mkStaticKey "y")]) == null))
     (check "getSetRecursive" (s.getSetRecursive (s.mkSet true []) == true))
     (check "getSetBindings" (builtins.length (s.getSetBindings (s.mkSet false [(nv "a" (sym "1"))])) == 1))
-    (check "getStrValue" (builtins.isList (s.getStrValue (s.mkPlainStr "hello"))))
+    (check "getStrValue" (builtins.isList (s.getStrValue (s.mkPlain "hello"))))
     (check "getSymName" (s.getSymName (sym "test") == "test"))
     (check "getSynHoleName" (s.getSynHoleName (s.mkSynHole "a") == "a"))
     (check "getUnaryOp" (s.getUnaryOp (s.mkUnary "!" (sym "x")) == "!"))
@@ -103,7 +103,7 @@ let
     (check "children App" (builtins.length (c.children (s.mkApp (sym "f") (sym "x"))) == 2))
     (check "children Assert" (builtins.length (c.children (s.mkAssert (sym "c") (sym "x"))) == 2))
     (check "children Binary" (builtins.length (c.children (s.mkBinary "+" (sym "a") (sym "b"))) == 2))
-    (check "children Constant" (builtins.length (c.children (s.mkConstant { tag = "Int"; int = 1; })) == 0))
+    (check "children Constant" (builtins.length (c.children (s.mkConstant { tag = "Int"; contents = 1; })) == 0))
     (check "children EnvPath" (builtins.length (c.children (s.mkEnvPath "nixpkgs")) == 0))
     (check "children HasAttr" (builtins.length (c.children (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")])) == 1))
     (check "children If" (builtins.length (c.children (s.mkIf (sym "c") (sym "t") (sym "f"))) == 3))
@@ -113,8 +113,8 @@ let
     (check "children Select no default" (builtins.length (c.children (s.mkSelect null (sym "x") [(s.mkStaticKey "y")])) == 1))
     (check "children Select with default" (builtins.length (c.children (s.mkSelect (sym "d") (sym "x") [(s.mkStaticKey "y")])) == 2))
     (check "children Set" (builtins.length (c.children (s.mkSet false [(nv "a" (sym "1")) (nv "b" (sym "2"))])) == 2))
-    (check "children Str no interp" (builtins.length (c.children (s.mkPlainStr "hello")) == 0))
-    (check "children Str with interp" (builtins.length (c.children (s.mkStr [{ tag = "Antiquoted"; expr = sym "x"; }])) == 1))
+    (check "children Str no interp" (builtins.length (c.children (s.mkPlain "hello")) == 0))
+    (check "children Str with interp" (builtins.length (c.children (s.mkStr [{ tag = "Antiquoted"; contents = sym "x"; }])) == 1))
     (check "children Sym" (builtins.length (c.children (sym "x")) == 0))
     (check "children SynHole" (builtins.length (c.children (s.mkSynHole "a")) == 0))
     (check "children Unary" (builtins.length (c.children (s.mkUnary "!" (sym "x"))) == 1))
@@ -171,9 +171,9 @@ let
     (check "rename nested" (s.getSymName (s.getLetBody (p.rename "x" "z" (s.mkLet [(nv "x" (sym "1"))] (sym "x")))) == "z"))
 
     # ═══ pass: replaceString ═══
-    (check "replaceString" ((builtins.head (s.getStrValue (p.replaceString "world" "nix" (s.mkPlainStr "hello world")))).value == "hello nix"))
+    (check "replaceString" ((builtins.head (s.getStrValue (p.replaceString "world" "nix" (s.mkPlain "hello world")))).contents == "hello nix"))
 
-    (check "replaceString no match" ((builtins.head (s.getStrValue (p.replaceString "xyz" "abc" (s.mkPlainStr "hello")))).value == "hello"))
+    (check "replaceString no match" ((builtins.head (s.getStrValue (p.replaceString "xyz" "abc" (s.mkPlain "hello")))).contents == "hello"))
     # ═══ pass: wrapWith ═══
     (check "wrapWith" (s.getExprKind (p.wrapWith "pkgs" (sym "x")) == "With"))
 
@@ -211,9 +211,9 @@ let
     (check "size nested" (a.size (s.mkApp (sym "f") (s.mkApp (sym "g") (sym "x"))) == 5))
 
     # ═══ analysis: allStrings ═══
-    (check "allStrings" (a.allStrings (s.mkList [(s.mkPlainStr "a") (s.mkPlainStr "b")]) == ["a" "b"]))
+    (check "allStrings" (a.allStrings (s.mkList [(s.mkPlain "a") (s.mkPlain "b")]) == ["a" "b"]))
     (check "allStrings empty" (a.allStrings (s.mkApp (sym "f") (sym "x")) == []))
-    (check "allStrings nested" (builtins.length (a.allStrings (s.mkIf (sym "c") (s.mkPlainStr "hello") (sym "x"))) == 1))
+    (check "allStrings nested" (builtins.length (a.allStrings (s.mkIf (sym "c") (s.mkPlain "hello") (sym "x"))) == 1))
 
     # ═══ analysis: allPaths ═══
     (check "allPaths literal" (builtins.length (a.allPaths (s.mkList [(s.mkLiteralPath "./foo.nix") (s.mkEnvPath "nixpkgs")])) == 2))

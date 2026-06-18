@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module NixAST (
     module NixAST.Types,
     module NixAST.Convert,

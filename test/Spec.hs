@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
@@ -189,8 +188,8 @@ shrinkExpr (Let bs b) =
         ++ [Let bs b' | b' <- shrink b]
 shrinkExpr (List xs) =
     xs ++ [List xs' | xs' <- shrink xs]
-shrinkExpr (Set rec bs) =
-    [Set rec bs' | bs' <- shrink bs]
+shrinkExpr (Set recursive bs) =
+    [Set recursive bs' | bs' <- shrink bs]
 shrinkExpr (Select defaultValue e ks) =
     [e]
         ++ [Select defaultValue e' ks | e' <- shrink e]
@@ -241,7 +240,7 @@ genSym :: Gen Expr
 genSym = Sym . HT.VarName . T.pack <$> listOf1 (choose ('a', 'z'))
 
 genStr :: Gen Expr
-genStr = Str . DoubleQuoted . pure . Plain . T.pack <$> listOf1 (choose ('a', 'z'))
+genStr = Str <$> (DoubleQuoted . pure . Plain . T.pack <$> listOf1 (choose ('a', 'z')))
 
 genApp :: Int -> Gen Expr
 genApp n = App <$> genExpr (n `div` 2) <*> genExpr (n `div` 2)

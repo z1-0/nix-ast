@@ -20,7 +20,7 @@ let
     else if tag == "HasAttr"
     then [node.expr]
     else if tag == "If"
-    then [node.cond node.then_ node.else_]
+    then [node.cond node.thenExpr node.elseExpr]
     else if tag == "Let"
     then [node.body]
     else if tag == "List"
@@ -42,7 +42,7 @@ let
       builtins.map (b: b.value) bindingExprs
     else if tag == "Str"
     then let
-      parts = node.str;
+      parts = node.value;
       antiquoted = builtins.filter (p: p ? tag && p.tag == "Antiquoted") parts;
     in
       builtins.map (p: p.expr) antiquoted
@@ -85,8 +85,8 @@ let
       node
       // {
         cond = builtins.elemAt cs 0;
-        then_ = builtins.elemAt cs 1;
-        else_ = builtins.elemAt cs 2;
+        thenExpr = builtins.elemAt cs 1;
+        elseExpr = builtins.elemAt cs 2;
       }
     else if tag == "Let"
     then node // {body = builtins.head cs;}

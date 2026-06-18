@@ -15,7 +15,7 @@ in {
       node:
         if s.isStr node
         then let
-          str = s.getStrStr node;
+          str = s.getStrValue node;
           replacePart = part:
             if part ? tag && part.tag == "Plain"
             then part // {value = builtins.replaceStrings [old] [new] part.value;}

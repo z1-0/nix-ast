@@ -50,7 +50,7 @@ let
   in
     builtins.concatMap (
       n: let
-        parts = s.getStrStr n;
+        parts = s.getStrValue n;
       in
         if builtins.isList parts
         then

@@ -57,7 +57,7 @@ data Binding
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data KeyName
-    = DynamicKey {antiquoted :: Antiquoted String Expr}
+    = DynamicKey {antiquoted :: Antiquoted String}
     | StaticKey {keyName :: VarName}
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
@@ -67,12 +67,12 @@ data Params
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data String
-    = DoubleQuoted {parts :: [Antiquoted Text Expr]}
-    | Indented {indent :: Int, parts :: [Antiquoted Text Expr]}
+    = DoubleQuoted {parts :: [Antiquoted Text]}
+    | Indented {indent :: Int, parts :: [Antiquoted Text]}
     deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
-data Antiquoted v r
+data Antiquoted v
     = Plain v
-    | Antiquoted r
+    | Antiquoted Expr
     | EscapedNewline
     deriving (Generic, Show, Eq, ToJSON, FromJSON)

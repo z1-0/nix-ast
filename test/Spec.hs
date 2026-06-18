@@ -297,8 +297,8 @@ stripPositions (Fix x) = Fix (go x)
     go (HT.NUnary op a) = HT.NUnary op (stripPositions a)
     go (HT.NWith ns b) = HT.NWith (stripPositions ns) (stripPositions b)
 
-    stripBinding (HT.NamedVar path val _) = HT.NamedVar path val dummyPos
-    stripBinding (HT.Inherit scope names _) = HT.Inherit scope names dummyPos
+    stripBinding (HT.NamedVar path val _) = HT.NamedVar path val HT.nullPos
+    stripBinding (HT.Inherit scope names _) = HT.Inherit scope names HT.nullPos
 
     stripParams (HT.Param n) = HT.Param n
     stripParams (HT.ParamSet n v ps) = HT.ParamSet n v ps

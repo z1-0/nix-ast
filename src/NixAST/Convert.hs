@@ -1,5 +1,4 @@
 module NixAST.Convert (
-    dummyPos,
     fromExpr,
     toExpr,
 ) where
@@ -13,7 +12,6 @@ import Nix.Atoms qualified as HT
 import Nix.Expr.Types qualified as HT
 import Nix.Prelude (Path (..))
 import NixAST.Types qualified as NT
-import Text.Megaparsec (mkPos)
 
 ----------------------------------------------------------------------
 -- HT.NExpr → Expr
@@ -51,7 +49,7 @@ toNString :: HT.NString HT.NExpr -> NT.String
 toNString (HT.DoubleQuoted parts) = NT.DoubleQuoted (map toAntiquoted parts)
 toNString (HT.Indented n parts)   = NT.Indented n (map toAntiquoted parts)
 
-toAntiquoted :: HT.Antiquoted Text HT.NExpr -> NT.Antiquoted Text NT.Expr
+toAntiquoted :: HT.Antiquoted Text HT.NExpr -> NT.Antiquoted Text
 toAntiquoted (HT.Antiquoted e) = NT.Antiquoted (toExpr e)
 toAntiquoted (HT.Plain t)      = NT.Plain t
 toAntiquoted HT.EscapedNewline = NT.EscapedNewline
@@ -111,14 +109,14 @@ fromNString :: NT.String -> HT.NString HT.NExpr
 fromNString (NT.DoubleQuoted parts) = HT.DoubleQuoted (map fromAntiquoted parts)
 fromNString (NT.Indented n parts)   = HT.Indented n (map fromAntiquoted parts)
 
-fromAntiquoted :: NT.Antiquoted Text NT.Expr -> HT.Antiquoted Text HT.NExpr
+fromAntiquoted :: NT.Antiquoted Text -> HT.Antiquoted Text HT.NExpr
 fromAntiquoted (NT.Antiquoted e) = HT.Antiquoted (fromExpr e)
 fromAntiquoted (NT.Plain t)      = HT.Plain t
 fromAntiquoted NT.EscapedNewline = HT.EscapedNewline
 
 fromBinding :: NT.Binding -> HT.Binding HT.NExpr
-fromBinding NT.Inherit{..}  = HT.Inherit (fmap fromExpr scope) names dummyPos
-fromBinding NT.NamedVar{..} = HT.NamedVar (NE.map fromKey attrPath) (fromExpr value) dummyPos
+fromBinding NT.Inherit{..}  = HT.Inherit (fmap fromExpr scope) names HT.nullPos
+fromBinding NT.NamedVar{..} = HT.NamedVar (NE.map fromKey attrPath) (fromExpr value) HT.nullPos
 
 fromKey :: NT.KeyName -> HT.NKeyName HT.NExpr
 fromKey (NT.DynamicKey (NT.Antiquoted e)) = HT.DynamicKey (HT.Antiquoted (fromExpr e))
@@ -133,8 +131,6 @@ fromParams NT.ParamSet{..} = HT.ParamSet paramSetName v (map convertParam params
     convertParam (name, defaultValue) = (name, fmap fromExpr defaultValue)
     v                                 = if variadic then HT.Variadic else HT.Closed
 
-dummyPos :: HT.NSourcePos
-dummyPos = HT.NSourcePos (Path "") (HT.NPos (mkPos 1)) (HT.NPos (mkPos 1))
 
 ----------------------------------------------------------------------
 -- Op mapping

@@ -21,8 +21,8 @@ in {
       nativeBuildInputs = [packages.${system}.nix-ast];
     } "nix-ast gen -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
 
-  syntax = import ./lib/ast/syntax.nix;
-  core = import ./lib/ast/core.nix;
-  pass = import ./lib/ast/pass.nix;
-  analysis = import ./lib/ast/analysis.nix;
+  syntax = import ./syntax.nix;
+  types = import ./types.nix;
+  match = import ./match.nix;
+  traversal = import ./traversal.nix;
 }

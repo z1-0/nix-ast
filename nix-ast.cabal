@@ -1,8 +1,9 @@
-cabal-version:   3.4
+cabal-version:   3.8
 name:            nix-ast
 
 -- x-release-please-start-version
 version:         0.1.0
+
 -- x-release-please-end
 
 license:         BSD-3-Clause
@@ -11,22 +12,34 @@ author:          zion
 maintainer:      ox7a696f6e@outlook.com
 extra-doc-files: CHANGELOG.md
 
-common std
-  default-language: GHC2021
-  ghc-options:      -Wall
+common shared
+  default-language:   GHC2021
+  default-extensions:
+    DeriveAnyClass
+    DerivingStrategies
+    DuplicateRecordFields
+    LambdaCase
+    OverloadedStrings
+    RecordWildCards
+    ScopedTypeVariables
+    TupleSections
+    TypeApplications
+    ViewPatterns
+
+  ghc-options:        -Wall -Wcompat
   build-depends:
-    , base        >=4.18 && <4.19
-    , bytestring  >=0.11 && <0.12
-    , text        >=2.0  && <2.1
+    , base        >=4.12
+    , bytestring  >=0.11
+    , text        >=2.0
 
 common dep
   build-depends:
-    , aeson     >=2.1  && <2.2
-    , data-fix  >=0.3  && <0.4
-    , hnix      >=0.17 && <0.18
+    , aeson     >=2.0
+    , data-fix  >=0.3
+    , hnix      >=0.17
 
 library
-  import:          std
+  import:          shared
   import:          dep
   exposed-modules:
     NixAST
@@ -35,19 +48,19 @@ library
 
   hs-source-dirs:  src
   build-depends:
-    , megaparsec     >=9.5 && <9.6
-    , prettyprinter  >=1.7 && <1.8
+    , megaparsec     >=9.5
+    , prettyprinter  >=1.7
 
 executable nix-ast
-  import:         std
+  import:         shared
   main-is:        Main.hs
   hs-source-dirs: app
   build-depends:
     , nix-ast
-    , optparse-applicative  >=0.18 && <0.19
+    , optparse-applicative  >=0.18
 
 test-suite tests
-  import:         std
+  import:         shared
   import:         dep
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs

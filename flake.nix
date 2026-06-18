@@ -16,7 +16,7 @@
 
     forEachSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
 
-    ghcVersion = "ghc96";
+    ghcVersion = "ghc910";
 
     forHaskellPkgs = f: pkgs: f pkgs pkgs.haskell.packages.${ghcVersion};
   in {
@@ -44,12 +44,12 @@
         pkgs: haskellPkgs: {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              cabal-install
-              fourmolu
               haskell.compiler.${ghcVersion}
               haskellPkgs.cabal-fmt
+              haskellPkgs.cabal-install
+              haskellPkgs.fourmolu
               haskellPkgs.haskell-language-server
-              hlint
+              haskellPkgs.hlint
               pkg-config
             ];
 

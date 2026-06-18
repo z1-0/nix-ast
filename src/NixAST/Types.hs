@@ -1,16 +1,11 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-
 module NixAST.Types (
     Antiquoted (..),
     Atom (..),
     Binding (..),
     Expr (..),
     KeyName (..),
-    Params (..),
     String (..),
+    Params (..),
     AttrPath,
     ParamSet,
     VarName,
@@ -35,56 +30,49 @@ data Expr
     | Constant {atom :: Atom}
     | EnvPath {path :: FilePath}
     | HasAttr {expr :: Expr, attrPath :: AttrPath}
-    | If {cond :: Expr, then_ :: Expr, else_ :: Expr}
+    | If {cond :: Expr, thenExpr :: Expr, elseExpr :: Expr}
     | Let {bindings :: [Binding], body :: Expr}
     | List {items :: [Expr]}
     | LiteralPath {path :: FilePath}
     | Select {defaultValue :: Maybe Expr, expr :: Expr, selectPath :: AttrPath}
-    | Set {rec :: Bool, bindings :: [Binding]}
-    | Str {str :: String}
+    | Set {recursive :: Bool, bindings :: [Binding]}
+    | Str {value :: String}
     | Sym {name :: VarName}
     | SynHole {name :: VarName}
     | Unary {op :: Text, arg :: Expr}
     | With {namespace :: Expr, body :: Expr}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data Atom
-    = Bool {bool :: Bool}
-    | Float {float :: Double}
-    | Int {int :: Integer}
+    = Bool Bool
+    | Float Double
+    | Int Integer
     | Null
-    | Uri {uri :: Text}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    | Uri Text
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data Binding
     = Inherit {scope :: Maybe Expr, names :: [VarName]}
     | NamedVar {attrPath :: AttrPath, value :: Expr}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data KeyName
-    = DynamicKey {antiquoted :: Antiquoted String}
+    = DynamicKey {antiquoted :: Antiquoted String Expr}
     | StaticKey {keyName :: VarName}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data Params
-    = ParamSet {paramSetName :: Maybe VarName, variadic :: Bool, paramList :: ParamSet}
+    = ParamSet {paramSetName :: Maybe VarName, variadic :: Bool, params :: ParamSet}
     | Param {paramName :: VarName}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
 data String
-    = DoubleQuoted {parts :: [Antiquoted Text]}
-    | Indented {indent :: Int, parts :: [Antiquoted Text]}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    = DoubleQuoted {parts :: [Antiquoted Text Expr]}
+    | Indented {indent :: Int, parts :: [Antiquoted Text Expr]}
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)
 
-data Antiquoted v
-    = Plain {value :: v}
+data Antiquoted v r
+    = Plain v
+    | Antiquoted r
     | EscapedNewline
-    | Antiquoted {expr :: Expr}
-    deriving (Generic, Show, Eq)
-    deriving anyclass (ToJSON, FromJSON)
+    deriving (Generic, Show, Eq, ToJSON, FromJSON)

@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-
 module NixAST.Convert (
     dummyPos,
     fromExpr,
@@ -55,7 +52,7 @@ toNString :: HT.NString HT.NExpr -> NT.String
 toNString (HT.DoubleQuoted parts) = NT.DoubleQuoted (map toAntiquoted parts)
 toNString (HT.Indented n parts)   = NT.Indented n (map toAntiquoted parts)
 
-toAntiquoted :: HT.Antiquoted Text HT.NExpr -> NT.Antiquoted Text
+toAntiquoted :: HT.Antiquoted Text HT.NExpr -> NT.Antiquoted Text NT.Expr
 toAntiquoted (HT.Antiquoted e) = NT.Antiquoted (toExpr e)
 toAntiquoted (HT.Plain t)      = NT.Plain t
 toAntiquoted HT.EscapedNewline = NT.EscapedNewline
@@ -92,13 +89,13 @@ fromExprF NT.Binary{..}      = HT.NBinary (fromBinaryOp op) (fromExpr left) (fro
 fromExprF NT.Constant{..}    = HT.NConstant (fromAtom atom)
 fromExprF NT.EnvPath{..}     = HT.NEnvPath (Path path)
 fromExprF NT.HasAttr{..}     = HT.NHasAttr (fromExpr expr) (NE.map fromKey attrPath)
-fromExprF NT.If{..}          = HT.NIf (fromExpr cond) (fromExpr then_) (fromExpr else_)
+fromExprF NT.If{..}          = HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
 fromExprF NT.Let{..}         = HT.NLet (map fromBinding bindings) (fromExpr body)
 fromExprF NT.List{..}        = HT.NList (map fromExpr items)
 fromExprF NT.LiteralPath{..} = HT.NLiteralPath (Path path)
 fromExprF NT.Select{..}      = HT.NSelect (fmap fromExpr defaultValue) (fromExpr expr) (NE.map fromKey selectPath)
-fromExprF NT.Set{..}         = HT.NSet (if rec then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
-fromExprF NT.Str{..}         = HT.NStr (fromNString str)
+fromExprF NT.Set{..}         = HT.NSet (if recursive then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
+fromExprF NT.Str{value}      = HT.NStr (fromNString value)
 fromExprF NT.Sym{..}         = HT.NSym name
 fromExprF NT.SynHole{..}     = HT.NSynHole name
 fromExprF NT.Unary{..}       = HT.NUnary (fromUnaryOp op) (fromExpr arg)
@@ -115,7 +112,7 @@ fromNString :: NT.String -> HT.NString HT.NExpr
 fromNString (NT.DoubleQuoted parts) = HT.DoubleQuoted (map fromAntiquoted parts)
 fromNString (NT.Indented n parts)   = HT.Indented n (map fromAntiquoted parts)
 
-fromAntiquoted :: NT.Antiquoted Text -> HT.Antiquoted Text HT.NExpr
+fromAntiquoted :: NT.Antiquoted Text NT.Expr -> HT.Antiquoted Text HT.NExpr
 fromAntiquoted (NT.Antiquoted e) = HT.Antiquoted (fromExpr e)
 fromAntiquoted (NT.Plain t)      = HT.Plain t
 fromAntiquoted NT.EscapedNewline = HT.EscapedNewline
@@ -132,7 +129,7 @@ fromKey (NT.StaticKey n)                  = HT.StaticKey n
 
 fromParams :: NT.Params -> HT.Params HT.NExpr
 fromParams NT.Param{..}    = HT.Param paramName
-fromParams NT.ParamSet{..} = HT.ParamSet paramSetName v (map convertParam paramList)
+fromParams NT.ParamSet{..} = HT.ParamSet paramSetName v (map convertParam params)
   where
     convertParam (name, defaultValue) = (name, fmap fromExpr defaultValue)
     v                                 = if variadic then HT.Variadic else HT.Closed

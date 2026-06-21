@@ -40,7 +40,7 @@ toExpr (Fix x) = case x of
 
 toAtom :: HT.NAtom -> NT.Atom
 toAtom (HT.NBool b)  = NT.Bool b
-toAtom (HT.NFloat f) = NT.Float (realToFrac f)
+toAtom (HT.NFloat f) = NT.Float f
 toAtom (HT.NInt i)   = NT.Int i
 toAtom (HT.NURI t)   = NT.Uri t
 toAtom HT.NNull      = NT.Null
@@ -100,7 +100,7 @@ fromExprF NT.With{..}           = HT.NWith (fromExpr namespace) (fromExpr body)
 
 fromAtom :: NT.Atom -> HT.NAtom
 fromAtom (NT.Bool b)  = HT.NBool b
-fromAtom (NT.Float f) = HT.NFloat (realToFrac f)
+fromAtom (NT.Float f) = HT.NFloat f
 fromAtom (NT.Int i)   = HT.NInt i
 fromAtom (NT.Uri t)   = HT.NURI t
 fromAtom NT.Null      = HT.NNull

@@ -166,7 +166,8 @@ instance Arbitrary Binding where
     arbitrary = sized genBinding
     shrink (NamedVar ks v) =
         [NamedVar ks v' | v' <- shrink v]
-    shrink (Inherit _ _) = []
+    shrink (Inherit scope names) =
+        [Inherit scope' names | scope' <- shrink scope]
 
 shrinkExpr :: Expr -> [Expr]
 shrinkExpr (App f a) =
@@ -257,18 +258,18 @@ genIf n = If <$> genExpr (n `div` 3) <*> genExpr (n `div` 3) <*> genExpr (n `div
 
 genLet :: Int -> Gen Expr
 genLet n = do
-    bs <- listOf1 (genBinding (n `div` 2))
+    bs <- vectorOf (1 + n `mod` 3) (genBinding (n `div` 2))
     Let bs <$> genExpr (n `div` 2)
 
 genList :: Int -> Gen Expr
-genList n = List <$> listOf (genExpr (n `div` 2))
+genList n = List <$> vectorOf (n `mod` 3) (genExpr (n `div` 2))
 
 genSet :: Int -> Gen Expr
-genSet n = Set False <$> listOf (genBinding (n `div` 2))
+genSet n = Set False <$> vectorOf (n `mod` 3) (genBinding (n `div` 2))
 
 genBinding :: Int -> Gen Binding
 genBinding n = do
-    name <- HT.VarName . T.pack <$> listOf1 (choose ('a', 'z'))
+    name <- HT.VarName . T.pack <$> vectorOf (1 + n `mod` 3) (choose ('a', 'z'))
     NamedVar (NE.singleton (StaticKey name)) <$> genExpr (n `div` 2)
 
 ----------------------------------------------------------------------

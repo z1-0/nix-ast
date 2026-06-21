@@ -45,7 +45,7 @@ data Expr
 
 data Atom
     = Bool Bool
-    | Float Double
+    | Float Float
     | Int Integer
     | Null
     | Uri Text

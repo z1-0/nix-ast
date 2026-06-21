@@ -110,46 +110,67 @@ let
       }
     ))
 
-    # ═══ 4. core: children & rebuild ═══
+    # ═══ 4. children & rebuild ═══
     (check "children Abs" (builtins.length (t.children (s.mkAbs (s.mkParam "x") (sym "x"))) == 1))
     (check "children App" (builtins.length (t.children (s.mkApp (sym "f") (sym "x"))) == 2))
+    (check "children Assert" (builtins.length (t.children (s.mkAssert (sym "c") (sym "x"))) == 2))
+    (check "children Binary" (builtins.length (t.children (s.mkBinary "+" (sym "a") (sym "b"))) == 2))
     (check "children Constant" (builtins.length (t.children (s.mkInt 42)) == 0))
+    (check "children HasAttr" (builtins.length (t.children (s.mkHasAttr (sym "x") [(s.mkStaticKey "y")])) == 1))
+    (check "children If" (builtins.length (t.children (s.mkIf (sym "c") (sym "t") (sym "f"))) == 3))
+    (check "children Let" (
+      let
+        ast = s.mkLet [(nv "x" (s.mkInt 1))] (sym "x");
+      in
+        builtins.length (t.children ast) == 2
+    ))
     (check "children List" (builtins.length (t.children (s.mkList [(sym "a") (sym "b")])) == 2))
+    (check "children Select" (
+      builtins.length (t.children (s.mkSelect null (sym "x") [(s.mkStaticKey "y")])) == 1
+    ))
+    (check "children Select with default" (
+      builtins.length (t.children (s.mkSelect (s.mkInt 0) (sym "x") [(s.mkStaticKey "y")])) == 2
+    ))
+    (check "children Set" (
+      let
+        ast = s.mkSet false [(nv "x" (s.mkInt 1))];
+      in
+        builtins.length (t.children ast) == 1
+    ))
     (check "children Str interpolation" (
       let
         strNode = s.mkDoubleQuoted [(s.mkPlain "foo ") (s.mkAntiquoted (sym "x")) (s.mkPlain " bar")];
       in
         builtins.length (t.children strNode) == 1
     ))
-    (check "map leaves" (
+    (check "children Unary" (builtins.length (t.children (s.mkUnary "!" (sym "x"))) == 1))
+    (check "children With" (builtins.length (t.children (s.mkWith (sym "ns") (sym "x"))) == 2))
+    (check "rebuild roundtrip" (
       let
-        app = s.mkApp (sym "f") (sym "x");
-        mapped = t.transform (node:
-          match node {
-            Sym = sNode: sym "${sNode.contents}1";
-            _ = _: node;
-          })
-        app;
+        ast = s.mkApp (sym "f") (sym "x");
       in
-        match mapped {
+        match (t.rebuild ast (t.children ast)) {
           App = {
             func,
             arg,
             ...
           }:
-            func.contents == "f1" && arg.contents == "x1";
+            func.contents == "f" && arg.contents == "x";
         }
     ))
 
-    # ═══ 5. traverse: generic traversal ═══
-    (check "traversal transform rename syms" (
+    # ═══ 5. traversal ═══
+    (check "transform rename syms" (
       let
         ast = s.mkApp (sym "x") (sym "x");
-        renamed = t.transform (node:
-          if node.tag == "Sym"
-          then node // {contents = "y";}
-          else node
-        ) ast;
+        renamed =
+          t.transform (
+            node:
+              if node.tag == "Sym"
+              then node // {contents = "y";}
+              else node
+          )
+          ast;
       in
         match renamed {
           App = {
@@ -160,14 +181,113 @@ let
             func.contents == "y" && arg.contents == "y";
         }
     ))
-    (check "traversal universe count syms" (
+    (check "universe count syms" (
       let
         ast = s.mkApp (sym "f") (sym "x");
         symCount = builtins.length (builtins.filter (node: node.tag == "Sym") (t.universe ast));
       in
         symCount == 2
     ))
-
+    (check "rewrite collapse nested" (
+      let
+        ast = s.mkApp (s.mkApp (sym "f") (sym "x")) (sym "y");
+        rule = node:
+          match node {
+            App = {
+              func,
+              arg,
+              ...
+            }:
+              if func.tag == "Sym" && arg.tag == "Sym"
+              then sym "${func.contents}${arg.contents}"
+              else null;
+            _ = _: null;
+          };
+        result = t.rewrite rule ast;
+      in
+        match result {
+          Sym = {contents, ...}: contents == "fxy";
+        }
+    ))
+    (check "para count syms" (
+      let
+        ast = s.mkApp (sym "f") (sym "x");
+        count =
+          t.para (
+            node: cs:
+              (
+                if node.tag == "Sym"
+                then 1
+                else 0
+              )
+              + builtins.foldl' builtins.add 0 cs
+          )
+          ast;
+      in
+        count == 2
+    ))
+    (check "holes round-trip" (
+      let
+        ast = s.mkApp (sym "f") (sym "x");
+        hs = t.holes ast;
+        firstChild = builtins.head (t.children ast);
+        firstPair = builtins.head hs;
+        child = builtins.elemAt firstPair 0;
+        replace = builtins.elemAt firstPair 1;
+      in
+        child.contents
+        == firstChild.contents
+        && (match (replace child) {
+          App = {
+            func,
+            arg,
+            ...
+          }:
+            func.contents == "f" && arg.contents == "x";
+        })
+    ))
+    (check "descend transforms only immediate children" (
+      let
+        deep = s.mkApp (sym "f") (sym "x");
+        ast = s.mkApp deep (sym "y");
+        result = t.descend (node:
+          if node.tag == "Sym"
+          then sym "z"
+          else node)
+        ast;
+      in
+        match result {
+          App = {
+            func,
+            arg,
+            ...
+          }:
+            arg.contents
+            == "z"
+            && match func {
+              App = inner:
+                inner.func.contents == "f" && inner.arg.contents == "x";
+            };
+        }
+    ))
+    (check "contexts replace restores parent" (
+      let
+        ast = s.mkApp (sym "f") (sym "x");
+        ctxs = t.contexts ast;
+        symCtxs = builtins.filter (pair: (builtins.elemAt pair 0).tag == "Sym") ctxs;
+        pair = builtins.head symCtxs;
+        sub = builtins.elemAt pair 0;
+        repl = builtins.elemAt pair 1;
+      in
+        match (repl sub) {
+          App = {
+            func,
+            arg,
+            ...
+          }:
+            func.contents == "f" && arg.contents == "x";
+        }
+    ))
   ];
 
   failed = map (t: t.name) (builtins.filter (t: !t.pass) allTests);

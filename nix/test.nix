@@ -290,7 +290,7 @@ let
     ))
   ];
 
-  failed = map (t: t.name) (builtins.filter (t: !t.pass) allTests);
+  failed = map (r: r.name) (builtins.filter (r: !r.pass) allTests);
   total = builtins.length allTests;
   failCount = builtins.length failed;
 in

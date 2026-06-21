@@ -2,6 +2,40 @@ let
   match = import ./match.nix;
 
   compose = f: g: x: f (g x);
+
+  # bindingChildren :: [Binding] -> [Node]
+  bindingChildren = bindings:
+    builtins.concatMap (
+      b:
+        match b {
+          Inherit = {scope, ...}:
+            if scope != null
+            then [scope]
+            else [];
+          NamedVar = {value, ...}: [value];
+        }
+    )
+    bindings;
+
+  # rebuildBindings :: [Node] -> [Binding] -> [Binding]
+  rebuildBindings = cs: bindings: let
+    go = acc: index: bs:
+      if bs == []
+      then acc
+      else let
+        b = builtins.head bs;
+        tail = builtins.tail bs;
+      in
+        match b {
+          Inherit = {scope, ...}:
+            if scope != null
+            then go (acc ++ [(b // {scope = builtins.elemAt cs index;})]) (index + 1) tail
+            else go (acc ++ [b]) index tail;
+          NamedVar = bNode:
+            go (acc ++ [(bNode // {value = builtins.elemAt cs index;})]) (index + 1) tail;
+        };
+  in
+    go [] 0 bindings;
 in rec {
   # children :: Node -> [Node]
   children = node:
@@ -35,21 +69,8 @@ in rec {
         bindings,
         body,
         ...
-      }: let
-        bindingExprs =
-          builtins.concatMap (
-            b:
-              match b {
-                Inherit = {scope, ...}:
-                  if scope != null
-                  then [scope]
-                  else [];
-                NamedVar = {value, ...}: [value];
-              }
-          )
-          bindings;
-      in
-        bindingExprs ++ [body];
+      }:
+        bindingChildren bindings ++ [body];
       List = {contents, ...}: contents;
       LiteralPath = _: [];
       Select = {
@@ -63,18 +84,7 @@ in rec {
           then [defaultValue]
           else []
         );
-      Set = {bindings, ...}:
-        builtins.concatMap (
-          b:
-            match b {
-              Inherit = {scope, ...}:
-                if scope != null
-                then [scope]
-                else [];
-              NamedVar = {value, ...}: [value];
-            }
-        )
-        bindings;
+      Set = {bindings, ...}: bindingChildren bindings;
       Str = {contents, ...}: let
         parts = match contents {
           DoubleQuoted = dq: dq.contents;
@@ -200,26 +210,10 @@ in rec {
         };
       Let = n: let
         body = builtins.elemAt cs (builtins.length cs - 1);
-        rebuildBindings = acc: index: bindings:
-          if bindings == []
-          then acc
-          else let
-            b = builtins.head bindings;
-            tail = builtins.tail bindings;
-          in
-            match b {
-              Inherit = {scope, ...}:
-                if scope != null
-                then rebuildBindings (acc ++ [(b // {scope = builtins.elemAt cs index;})]) (index + 1) tail
-                else rebuildBindings (acc ++ [b]) index tail;
-              NamedVar = bNode:
-                rebuildBindings (acc ++ [(bNode // {value = builtins.elemAt cs index;})]) (index + 1) tail;
-            };
-        newBindings = rebuildBindings [] 0 n.bindings;
       in
         n
         // {
-          bindings = newBindings;
+          bindings = rebuildBindings cs n.bindings;
           inherit body;
         };
       List = n: n // {contents = cs;};
@@ -233,25 +227,7 @@ in rec {
             defaultValue = builtins.elemAt cs 1;
           }
         else n // {expr = builtins.head cs;};
-      Set = n: let
-        rebuildBindings = acc: index: bindings:
-          if bindings == []
-          then acc
-          else let
-            b = builtins.head bindings;
-            tail = builtins.tail bindings;
-          in
-            match b {
-              Inherit = {scope, ...}:
-                if scope != null
-                then rebuildBindings (acc ++ [(b // {scope = builtins.elemAt cs index;})]) (index + 1) tail
-                else rebuildBindings (acc ++ [b]) index tail;
-              NamedVar = bNode:
-                rebuildBindings (acc ++ [(bNode // {value = builtins.elemAt cs index;})]) (index + 1) tail;
-            };
-        newBindings = rebuildBindings [] 0 n.bindings;
-      in
-        n // {bindings = newBindings;};
+      Set = n: n // {bindings = rebuildBindings cs n.bindings;};
       Str = n: let
         rebuildParts = acc: index: parts:
           if parts == []

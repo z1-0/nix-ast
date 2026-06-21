@@ -190,7 +190,7 @@ shrinkExpr (Let bs b) =
 shrinkExpr (List xs) =
     xs ++ [List xs' | xs' <- shrink xs]
 shrinkExpr (Set recursive bs) =
-    [Set recursive bs' | bs' <- shrink bs]
+    Set recursive [] : [Set recursive bs' | bs' <- shrink bs]
 shrinkExpr (Select defaultValue e ks) =
     [e]
         ++ [Select defaultValue e' ks | e' <- shrink e]
@@ -214,7 +214,7 @@ shrinkExpr (Assert c b) =
 shrinkExpr _ = []
 
 genExpr :: Int -> Gen Expr
-genExpr 0 = oneof [genAtom, genSym, genStr]
+genExpr 0 = oneof [genAtom, genSym, genStr, genEnvPath, genLiteralPath, genSynHole]
 genExpr n =
     frequency
         [ (3, genAtom)
@@ -226,6 +226,15 @@ genExpr n =
         , (1, genLet n)
         , (1, genList n)
         , (1, genSet n)
+        , (1, genAbs n)
+        , (1, genAssert n)
+        , (1, genHasAttr n)
+        , (1, genSelect n)
+        , (1, genUnary n)
+        , (1, genWith n)
+        , (1, genEnvPath)
+        , (1, genLiteralPath)
+        , (1, genSynHole)
         ]
 
 genAtom :: Gen Expr
@@ -233,15 +242,17 @@ genAtom =
     Constant
         <$> oneof
             [ Bool <$> arbitrary
+            , Float <$> arbitrary
             , Int <$> arbitrary
             , pure Null
+            , Uri . T.pack <$> elements ["https://example.com", "https://nixos.org", "file:///tmp/foo"]
             ]
 
 genSym :: Gen Expr
 genSym = Sym . HT.VarName . T.pack <$> listOf1 (choose ('a', 'z'))
 
 genStr :: Gen Expr
-genStr = Str <$> (DoubleQuoted . pure . Plain . T.pack <$> listOf1 (choose ('a', 'z')))
+genStr = Str . DoubleQuoted . pure . Plain . T.pack <$> listOf1 (choose ('a', 'z'))
 
 genApp :: Int -> Gen Expr
 genApp n = App <$> genExpr (n `div` 2) <*> genExpr (n `div` 2)
@@ -258,19 +269,64 @@ genIf n = If <$> genExpr (n `div` 3) <*> genExpr (n `div` 3) <*> genExpr (n `div
 
 genLet :: Int -> Gen Expr
 genLet n = do
-    bs <- vectorOf (1 + n `mod` 3) (genBinding (n `div` 2))
+    bs <- listOf1 (genBinding (n `div` 2))
     Let bs <$> genExpr (n `div` 2)
 
 genList :: Int -> Gen Expr
-genList n = List <$> vectorOf (n `mod` 3) (genExpr (n `div` 2))
+genList n = List <$> listOf (genExpr (n `div` 2))
 
 genSet :: Int -> Gen Expr
-genSet n = Set False <$> vectorOf (n `mod` 3) (genBinding (n `div` 2))
+genSet n = Set False <$> listOf (genBinding (n `div` 2))
+
+genEnvPath :: Gen Expr
+genEnvPath = EnvPath <$> elements ["<nixpkgs>", "<nixos>", "<foo>"]
+
+genLiteralPath :: Gen Expr
+genLiteralPath = LiteralPath <$> elements ["./foo.nix", "./bar.nix", "./baz.nix"]
+
+genSynHole :: Gen Expr
+genSynHole = SynHole . HT.VarName . T.pack <$> vectorOf 3 (choose ('a', 'z'))
+
+genAbs :: Int -> Gen Expr
+genAbs n = Abs <$> genParam <*> genExpr (n `div` 2)
+
+genParam :: Gen Params
+genParam = Param . HT.VarName . T.pack <$> vectorOf 3 (choose ('a', 'z'))
+
+genAssert :: Int -> Gen Expr
+genAssert n = Assert <$> genExpr (n `div` 2) <*> genExpr (n `div` 2)
+
+genHasAttr :: Int -> Gen Expr
+genHasAttr n = HasAttr <$> genExpr (n `div` 2) <*> genAttrPath
+
+genSelect :: Int -> Gen Expr
+genSelect n = Select <$> frequency [(1, Just <$> genExpr (n `div` 3)), (3, pure Nothing)] <*> genExpr (n `div` 2) <*> genAttrPath
+
+genUnary :: Int -> Gen Expr
+genUnary n = Unary <$> elements ["-", "!"] <*> genExpr (n `div` 2)
+
+genWith :: Int -> Gen Expr
+genWith n = With <$> genExpr (n `div` 2) <*> genExpr (n `div` 2)
+
+genAttrPath :: Gen (NE.NonEmpty KeyName)
+genAttrPath = do
+    n <- choose (1, 3)
+    ks <- vectorOf n staticKey
+    pure (NE.fromList ks)
+  where
+    staticKey = StaticKey . HT.VarName . T.pack <$> vectorOf 3 (choose ('a', 'z'))
 
 genBinding :: Int -> Gen Binding
-genBinding n = do
-    name <- HT.VarName . T.pack <$> vectorOf (1 + n `mod` 3) (choose ('a', 'z'))
-    NamedVar (NE.singleton (StaticKey name)) <$> genExpr (n `div` 2)
+genBinding size =
+    frequency [(3, genNamedVar size), (1, genInherit size)]
+  where
+    genNamedVar n = do
+        name <- HT.VarName . T.pack <$> vectorOf (1 + n `mod` 3) (choose ('a', 'z'))
+        NamedVar (NE.singleton (StaticKey name)) <$> genExpr (n `div` 2)
+    genInherit n = do
+        scope <- frequency [(1, Just <$> genExpr (n `div` 2)), (3, pure Nothing)]
+        names <- vectorOf (1 + n `mod` 2) (HT.VarName . T.pack <$> vectorOf 3 (choose ('a', 'z')))
+        pure (Inherit scope names)
 
 ----------------------------------------------------------------------
 -- Helpers

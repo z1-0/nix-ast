@@ -5,6 +5,13 @@
   inherit (pkgs) runCommand stdenv;
   inherit (stdenv.hostPlatform) system;
 in {
+  # Generate a .nix file from a JSON AST value.
+  # gen :: attrset -> Path
+  gen = ast:
+    runCommand "nix-ast-gen" {
+      nativeBuildInputs = [packages.${system}.nix-ast];
+    } "nix-ast gen -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
+
   # Parse a .nix file into a JSON AST value.
   # parse :: Path -> attrset
   parse = src: let
@@ -14,15 +21,8 @@ in {
   in
     builtins.fromJSON (builtins.readFile json);
 
-  # Generate a .nix file from a JSON AST value.
-  # gen :: attrset -> Path
-  gen = ast:
-    runCommand "nix-ast-gen" {
-      nativeBuildInputs = [packages.${system}.nix-ast];
-    } "nix-ast gen -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
-
-  syntax = import ./syntax.nix;
-  types = import ./types.nix;
   match = import ./match.nix;
+  syntax = import ./syntax.nix;
   traversal = import ./traversal.nix;
+  types = import ./types.nix;
 }

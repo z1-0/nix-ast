@@ -101,6 +101,71 @@ in rec {
       }: [namespace body];
     };
 
+  # contexts :: Node -> [(Node, Node -> Node)]
+  # Every subnode paired with a function to replace it in its context.
+  contexts = node: let
+    processHoles = holesList:
+      if builtins.length holesList == 0
+      then []
+      else let
+        pair = builtins.head holesList;
+        c = builtins.elemAt pair 0;
+        ctx = builtins.elemAt pair 1;
+        rest = builtins.tail holesList;
+        subContexts = contexts c;
+        mappedSubs =
+          map (
+            sub: let
+              subNode = builtins.elemAt sub 0;
+              subFn = builtins.elemAt sub 1;
+            in [
+              subNode
+              (compose ctx subFn)
+            ]
+          )
+          subContexts;
+      in
+        mappedSubs ++ processHoles rest;
+  in
+    [
+      [
+        node
+        (x: x)
+      ]
+    ]
+    ++ processHoles (holes node);
+
+  # descend :: (Node -> Node) -> Node -> Node
+  # Apply a transformation to every immediate child, then rebuild.
+  descend = f: node: rebuild node (builtins.map f (children node));
+
+  # holes :: Node -> [(Node, Node -> Node)]
+  # Each immediate child paired with a function to replace it in the parent.
+  holes = node: let
+    cs = children node;
+    len = builtins.length cs;
+    indices = builtins.genList (x: x) len;
+  in
+    map (
+      i: let
+        c = builtins.elemAt cs i;
+        replace = new:
+          rebuild node (map (j:
+            if j == i
+            then new
+            else builtins.elemAt cs j)
+          indices);
+      in [
+        c
+        replace
+      ]
+    )
+    indices;
+
+  # para :: (Node -> [a] -> a) -> Node -> a
+  # Paramorphism: f receives the node and the recursively-computed results from children.
+  para = f: node: f node (map (para f) (children node));
+
   # rebuild :: Node -> [Node] -> Node
   rebuild = node: cs:
     match node {
@@ -198,8 +263,7 @@ in rec {
             match p {
               Antiquoted = pNode:
                 rebuildParts (acc ++ [(pNode // {contents = builtins.elemAt cs index;})]) (index + 1) tail;
-              _ = _:
-                rebuildParts (acc ++ [p]) index tail;
+              _ = _: rebuildParts (acc ++ [p]) index tail;
             };
         newContents = match n.contents {
           DoubleQuoted = dq: dq // {contents = rebuildParts [] 0 dq.contents;};
@@ -218,72 +282,24 @@ in rec {
         };
     };
 
-  # descend :: (Node -> Node) -> Node -> Node
-  # Apply a transformation to every immediate child, then rebuild.
-  descend = f: node:
-    rebuild node (builtins.map f (children node));
-
-  # transform :: (Node -> Node) -> Node -> Node
-  # Bottom-up transformation: apply f to children first, then to parent.
-  transform = f: node:
-    f (descend (transform f) node);
-
   # rewrite :: (Node -> Maybe Node) -> Node -> Node
   # Apply a rule everywhere bottom-up; if f returns null, leave unchanged.
   rewrite = f: node:
-    transform (x: let
-      res = f x;
-    in
-      if res != null
-      then res
-      else x)
+    transform (
+      x: let
+        res = f x;
+      in
+        if res != null
+        then res
+        else x
+    )
     node;
 
-  # para :: (Node -> [a] -> a) -> Node -> a
-  # Paramorphism: f receives the node and the recursively-computed results from children.
-  para = f: node: f node (map (para f) (children node));
+  # transform :: (Node -> Node) -> Node -> Node
+  # Bottom-up transformation: apply f to children first, then to parent.
+  transform = f: node: f (descend (transform f) node);
 
   # universe :: Node -> [Node]
   # All descendant nodes including the node itself.
   universe = node: [node] ++ builtins.concatMap universe (children node);
-
-  # holes :: Node -> [(Node, Node -> Node)]
-  # Each immediate child paired with a function to replace it in the parent.
-  holes = node: let
-    cs = children node;
-    len = builtins.length cs;
-    indices = builtins.genList (x: x) len;
-  in
-    map (i: let
-      c = builtins.elemAt cs i;
-      replace = new:
-        rebuild node (map (j:
-          if j == i
-          then new
-          else builtins.elemAt cs j)
-        indices);
-    in [c replace])
-    indices;
-
-  # contexts :: Node -> [(Node, Node -> Node)]
-  # Every subnode paired with a function to replace it in its context.
-  contexts = node: let
-    processHoles = holesList:
-      if builtins.length holesList == 0
-      then []
-      else let
-        pair = builtins.head holesList;
-        c = builtins.elemAt pair 0;
-        ctx = builtins.elemAt pair 1;
-        rest = builtins.tail holesList;
-        subContexts = contexts c;
-        mappedSubs = map (sub: let
-          subNode = builtins.elemAt sub 0;
-          subFn = builtins.elemAt sub 1;
-        in [subNode (compose ctx subFn)])
-        subContexts;
-      in
-        mappedSubs ++ processHoles rest;
-  in
-    [[node (x: x)]] ++ processHoles (holes node);
 }

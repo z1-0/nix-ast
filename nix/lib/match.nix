@@ -1,4 +1,3 @@
-# nix/lib/match.nix — Nix AST Pattern Matching
 let
   # match :: Node -> AttrSet (Node -> Any) -> Any
   match = node: branches:

@@ -10,29 +10,57 @@ import System.IO (hSetEncoding, stderr, stdin, stdout, utf8)
 
 data Command
     = Parse Input
-    | Gen Input
+    | Render Input
 
 data Input
     = FromFile FilePath
     | FromStdin
+    | FromExpr T.Text
+    | FromJSON T.Text
 
 parseCommand :: Parser Command
 parseCommand =
     hsubparser
-        ( command "parse" (info (Parse <$> inputOpt) (progDesc "Parse a Nix expression to JSON AST"))
-            <> command "gen" (info (Gen <$> inputOpt) (progDesc "Generate Nix expression from JSON AST"))
+        ( command "parse" (info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to JSON AST"))
+            <> command "render" (info (Render <$> renderOpt) (progDesc "Generate Nix expression from JSON AST"))
         )
 
-inputOpt :: Parser Input
-inputOpt = fromFile <|> pure FromStdin
+parseOpt :: Parser Input
+parseOpt = exprOpt <|> fileOpt <|> pure FromStdin
   where
-    fromFile =
+    fileOpt =
         FromFile
             <$> strOption
                 ( long "file"
                     <> short 'f'
                     <> metavar "FILE"
                     <> help "Input file (default: stdin)"
+                )
+    exprOpt =
+        FromExpr
+            <$> strOption
+                ( long "expr"
+                    <> metavar "EXPR"
+                    <> help "Nix expression string"
+                )
+
+renderOpt :: Parser Input
+renderOpt = jsonOpt <|> fileOpt <|> pure FromStdin
+  where
+    fileOpt =
+        FromFile
+            <$> strOption
+                ( long "file"
+                    <> short 'f'
+                    <> metavar "FILE"
+                    <> help "Input file (default: stdin)"
+                )
+    jsonOpt =
+        FromJSON
+            <$> strOption
+                ( long "json"
+                    <> metavar "JSON"
+                    <> help "JSON AST string"
                 )
 
 opts :: ParserInfo Command
@@ -52,7 +80,7 @@ main = do
     cmd <- execParser opts
     case cmd of
         Parse input -> runParse input
-        Gen input -> runGen input
+        Render input -> runRender input
 
 runParse :: Input -> IO ()
 runParse input = do
@@ -61,8 +89,8 @@ runParse input = do
         Left err -> die err
         Right json -> BL.putStrLn json
 
-runGen :: Input -> IO ()
-runGen input = do
+runRender :: Input -> IO ()
+runRender input = do
     bs <- readInputBS input
     case jsonToNix bs of
         Left err -> die err
@@ -74,7 +102,11 @@ die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
 readInput :: Input -> IO T.Text
 readInput (FromFile path) = TIO.readFile path
 readInput FromStdin = TIO.getContents
+readInput (FromExpr expr) = pure expr
+readInput (FromJSON json) = pure json
 
 readInputBS :: Input -> IO BL.ByteString
 readInputBS (FromFile path) = BL.readFile path
 readInputBS FromStdin = BL.getContents
+readInputBS (FromExpr _) = die (T.pack "--expr is only supported for parse")
+readInputBS (FromJSON json) = pure (BL.pack (T.unpack json))

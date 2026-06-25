@@ -6,11 +6,11 @@
   inherit (stdenv.hostPlatform) system;
 in {
   # Generate a .nix file from a JSON AST value.
-  # gen :: attrset -> Path
-  gen = ast:
-    runCommand "nix-ast-gen" {
+  # render :: attrset -> Path
+  render = ast:
+    runCommand "nix-ast-render" {
       nativeBuildInputs = [packages.${system}.nix-ast];
-    } "nix-ast gen -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
+    } "nix-ast render -f ${builtins.toFile "input.json" (builtins.toJSON ast)} > $out";
 
   # Parse a .nix file into a JSON AST value.
   # parse :: Path -> attrset

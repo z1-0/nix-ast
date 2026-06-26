@@ -2,16 +2,15 @@
   pkgs ? import <nixpkgs> {},
   packages,
 }: let
-  inherit (pkgs) runCommand stdenv;
+  inherit (pkgs) lib runCommand stdenv;
   inherit (stdenv.hostPlatform) system;
-  lib = pkgs.lib;
 
   match = import ./match.nix;
   syntax = import ./syntax.nix;
   traversal = import ./traversal.nix;
   types = import ./types.nix;
 in {
-  inherit syntax match traversal types;
+  inherit match syntax traversal types;
 
   # Convert an AST value to a .nix file.
   # render :: AST -> Path
@@ -54,12 +53,7 @@ in {
       then
         if v ? type && v.type == "derivation"
         then throw "toAST: cannot convert derivation to AST"
-        else
-          syntax.mkSet false (lib.mapAttrsToList (
-              name: val:
-                syntax.mkNamedVar [(syntax.mkStaticKey name)] (go val)
-            )
-            v)
+        else syntax.mkSet false (lib.mapAttrsToList (name: val: syntax.mkNamedVar [(syntax.mkStaticKey name)] (go val)) v)
       else throw "toAST: unsupported Nix type";
   in
     go value;

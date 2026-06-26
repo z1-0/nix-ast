@@ -1,5 +1,3 @@
-# nix/test.nix — Nix AST API Tests
-# Run: nix-instantiate --eval nix/test.nix 2>&1
 let
   lib = import ./lib/default.nix {
     pkgs = import <nixpkgs> {};
@@ -288,6 +286,33 @@ let
             func.contents == "f" && arg.contents == "x";
         }
     ))
+
+    # ═══ 6. toAST ═══
+    (check "toAST int" ((lib.toAST 42).contents.contents == 42))
+    (check "toAST bool" ((lib.toAST true).contents.contents == true))
+    (check "toAST null" ((lib.toAST null).contents.tag == "Null"))
+    (check "toAST string" ((builtins.head (lib.toAST "hi").contents.contents).contents == "hi"))
+    (check "toAST path" ((lib.toAST ./test.nix).tag == "LiteralPath"))
+    (check "toAST list" ((builtins.length (lib.toAST [1 true]).contents) == 2))
+    (check "toAST empty list" ((builtins.length (lib.toAST []).contents) == 0))
+    (check "toAST attrset" ((builtins.length (lib.toAST {a = 1;}).bindings) == 1))
+    (check "toAST nested" (
+      let
+        ast = lib.toAST {outer = {inner = 42;};};
+        outerBinding = builtins.head ast.bindings;
+        innerSet = outerBinding.value;
+        innerBinding = builtins.head innerSet.bindings;
+      in
+        ast.tag
+        == "Set"
+        && (builtins.head outerBinding.attrPath).contents == "outer"
+        && innerSet.tag == "Set"
+        && (builtins.head innerBinding.attrPath).contents == "inner"
+        && innerBinding.value.contents.contents == 42
+    ))
+    (check "toAST function throws" (throwsError (lib.toAST (x: x))))
+    (check "toAST nested function throws" (throwsError (lib.toAST {a = x: x;})))
+    (check "toAST derivation throws" (throwsError (lib.toAST (import <nixpkgs> {}).bash)))
   ];
 
   failed = map (r: r.name) (builtins.filter (r: !r.pass) allTests);

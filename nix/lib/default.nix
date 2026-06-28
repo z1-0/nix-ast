@@ -1,45 +1,40 @@
-{
-  pkgs ? import <nixpkgs> { },
-  packages,
-}:
-let
-  inherit (pkgs) lib runCommand stdenv;
-  inherit (stdenv.hostPlatform) system;
+{ lib, packages }:
 
+let
   match = import ./match.nix;
   syntax = import ./syntax.nix;
   traversal = import ./traversal.nix;
   types = import ./types.nix;
+
+  nix-ast-cli = pkgs: packages.${pkgs.stdenv.hostPlatform.system}.nix-ast;
 in
+
 {
-  inherit
-    match
-    syntax
-    traversal
-    types
-    ;
+  inherit match syntax traversal types ;
 
   # Convert an AST value to a .nix file.
-  # render :: AST -> Path
+  # NOTE: This is an IFD (Import From Derivation) function.
+  # render :: pkgs -> AST -> Path
   render =
-    ast:
-    runCommand "nix-ast-render" {
-      nativeBuildInputs = [ packages.${system}.nix-ast ];
+    pkgs: ast:
+    pkgs.runCommand "nix-ast-render" {
+      nativeBuildInputs = [ (nix-ast-cli pkgs) ];
     } "nix-ast render -f ${builtins.toFile "ast.json" (builtins.toJSON ast)} > $out";
 
   # Parse a .nix file into an AST value.
-  # parse :: Path -> AST
+  # NOTE: This is an IFD (Import From Derivation) function.
+  # parse :: pkgs -> Path -> AST
   parse =
-    src:
+    pkgs: src:
     let
-      json = runCommand "nix-ast-parse" {
-        nativeBuildInputs = [ packages.${system}.nix-ast ];
+      json = pkgs.runCommand "nix-ast-parse" {
+        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
       } "nix-ast parse -f ${src} > $out";
     in
     builtins.fromJSON (builtins.readFile json);
 
   # Convert any Nix value to its AST, recursing into attrsets and lists.
-  # Throws on functions, derivations, and unsupported types.
+  # Functions and derivations are not supported and will raise an error.
   # toAST :: Any -> AST
   toAST =
     value:

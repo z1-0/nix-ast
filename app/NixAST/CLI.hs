@@ -7,15 +7,16 @@ module NixAST.CLI (
 ) where
 
 import Data.ByteString.Lazy qualified as BL
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
 import Options.Applicative
+import Options.Applicative.Help (parserHelp, renderHelp)
 import Paths_nix_ast (version)
 import System.Exit (exitFailure)
-import System.IO (stderr)
+import System.IO (hIsTerminalDevice, stderr, stdin)
 
 data Command
     = Parse Input
@@ -27,11 +28,17 @@ data Input
     | FromExpr Text
     | FromJSON Text
 
+parseInfo :: ParserInfo Command
+parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to JSON AST")
+
+renderInfo :: ParserInfo Command
+renderInfo = info (Render <$> renderOpt) (progDesc "Generate Nix expression from JSON AST")
+
 parseCommand :: Parser Command
 parseCommand =
     hsubparser
-        ( command "parse" (info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to JSON AST"))
-            <> command "render" (info (Render <$> renderOpt) (progDesc "Generate Nix expression from JSON AST"))
+        ( command "parse" parseInfo
+            <> command "render" renderInfo
         )
 
 parseOpt :: Parser Input
@@ -102,12 +109,21 @@ die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
 
 readInput :: Input -> IO Text
 readInput (FromFile path) = TIO.readFile path
-readInput FromStdin = TIO.getContents
+readInput FromStdin = do
+    isTty <- hIsTerminalDevice stdin
+    if isTty then showSubcommandHelp (Parse <$> parseOpt) else TIO.getContents
 readInput (FromExpr expr) = pure expr
 readInput (FromJSON json) = pure json
 
 readInputBS :: Input -> IO BL.ByteString
 readInputBS (FromFile path) = BL.readFile path
-readInputBS FromStdin = BL.getContents
+readInputBS FromStdin = do
+    isTty <- hIsTerminalDevice stdin
+    if isTty then showSubcommandHelp (Render <$> renderOpt) else BL.getContents
 readInputBS (FromExpr _) = die "--expr is only supported for parse"
 readInputBS (FromJSON json) = pure (BL.fromStrict (encodeUtf8 json))
+
+showSubcommandHelp :: Parser Command -> IO a
+showSubcommandHelp p = do
+    TIO.hPutStrLn stderr $ pack $ renderHelp 80 (parserHelp defaultPrefs p)
+    exitFailure

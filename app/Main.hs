@@ -1,8 +1,10 @@
 module Main (main) where
 
-import Data.ByteString.Lazy.Char8 qualified as BL
+import Data.ByteString.Lazy qualified as BL
 import Data.Text qualified as T
-import Data.Text.IO qualified as TIO
+import Data.Text.IO (getContents, hPutStrLn, putStrLn, readFile)
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Encoding (encodeUtf8)
 import NixAST
 import Options.Applicative
 import System.Exit (exitFailure)
@@ -28,14 +30,6 @@ parseCommand =
 parseOpt :: Parser Input
 parseOpt = exprOpt <|> fileOpt <|> pure FromStdin
   where
-    fileOpt =
-        FromFile
-            <$> strOption
-                ( long "file"
-                    <> short 'f'
-                    <> metavar "FILE"
-                    <> help "Input file (default: stdin)"
-                )
     exprOpt =
         FromExpr
             <$> strOption
@@ -47,14 +41,6 @@ parseOpt = exprOpt <|> fileOpt <|> pure FromStdin
 renderOpt :: Parser Input
 renderOpt = jsonOpt <|> fileOpt <|> pure FromStdin
   where
-    fileOpt =
-        FromFile
-            <$> strOption
-                ( long "file"
-                    <> short 'f'
-                    <> metavar "FILE"
-                    <> help "Input file (default: stdin)"
-                )
     jsonOpt =
         FromJSON
             <$> strOption
@@ -62,6 +48,14 @@ renderOpt = jsonOpt <|> fileOpt <|> pure FromStdin
                     <> metavar "JSON"
                     <> help "JSON AST string"
                 )
+
+fileOpt :: Parser Input
+fileOpt = FromFile <$> strOption
+    ( long "file"
+        <> short 'f'
+        <> metavar "FILE"
+        <> help "Input file (default: stdin)"
+    )
 
 opts :: ParserInfo Command
 opts =
@@ -94,19 +88,19 @@ runRender input = do
     bs <- readInputBS input
     case jsonToNix bs of
         Left err -> die err
-        Right nix -> TIO.putStrLn nix
+        Right nix -> putStrLn nix
 
 die :: T.Text -> IO a
-die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
+die err = hPutStrLn stderr ("Error: " <> err) >> exitFailure
 
 readInput :: Input -> IO T.Text
-readInput (FromFile path) = TIO.readFile path
-readInput FromStdin = TIO.getContents
+readInput (FromFile path) = readFile path
+readInput FromStdin = getContents
 readInput (FromExpr expr) = pure expr
 readInput (FromJSON json) = pure json
 
 readInputBS :: Input -> IO BL.ByteString
 readInputBS (FromFile path) = BL.readFile path
 readInputBS FromStdin = BL.getContents
-readInputBS (FromExpr _) = die (T.pack "--expr is only supported for parse")
-readInputBS (FromJSON json) = pure (BL.pack (T.unpack json))
+readInputBS (FromExpr _) = die "--expr is only supported for parse"
+readInputBS (FromJSON json) = pure (encodeUtf8 (TL.fromStrict json))

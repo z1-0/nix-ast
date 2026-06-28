@@ -11,7 +11,7 @@ import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text)
 import Data.Text qualified as T
-import Nix.Expr.Types qualified as H
+import Nix.Expr.Types qualified as HT
 import Nix.Parser (parseNixText)
 import Nix.Pretty (prettyNix)
 import NixAST.Convert
@@ -27,10 +27,10 @@ jsonToNix bs = case eitherDecode @Expr bs of
 nixToJSON :: Text -> Either Text BL.ByteString
 nixToJSON src = encode . toExpr <$> parseNix src
 
-parseNix :: Text -> Either Text H.NExpr
+parseNix :: Text -> Either Text HT.NExpr
 parseNix src = case parseNixText src of
     Left err -> Left (T.pack (show err))
     Right expr -> Right expr
 
-renderNix :: H.NExpr -> Text
+renderNix :: HT.NExpr -> Text
 renderNix = renderStrict . layoutPretty defaultLayoutOptions . prettyNix

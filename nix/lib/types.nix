@@ -27,32 +27,54 @@ let
 
   Atom = {
     name = "Atom";
-    check = isNodeOf ["Bool" "Float" "Int" "Null" "Uri"];
+    check = isNodeOf [
+      "Bool"
+      "Float"
+      "Int"
+      "Null"
+      "Uri"
+    ];
   };
 
   Binding = {
     name = "Binding";
-    check = isNodeOf ["Inherit" "NamedVar"];
+    check = isNodeOf [
+      "Inherit"
+      "NamedVar"
+    ];
   };
 
   KeyName = {
     name = "KeyName";
-    check = isNodeOf ["DynamicKey" "StaticKey"];
+    check = isNodeOf [
+      "DynamicKey"
+      "StaticKey"
+    ];
   };
 
   Params = {
     name = "Params";
-    check = isNodeOf ["Param" "ParamSet"];
+    check = isNodeOf [
+      "Param"
+      "ParamSet"
+    ];
   };
 
   String = {
     name = "String";
-    check = isNodeOf ["DoubleQuoted" "Indented"];
+    check = isNodeOf [
+      "DoubleQuoted"
+      "Indented"
+    ];
   };
 
   AntiquotedText = {
     name = "Antiquoted Text";
-    check = isNodeOf ["Plain" "Antiquoted" "EscapedNewline"];
+    check = isNodeOf [
+      "Plain"
+      "Antiquoted"
+      "EscapedNewline"
+    ];
   };
 
   # Combinators
@@ -95,7 +117,25 @@ let
     name = "bool";
     check = builtins.isBool;
   };
-in {
-  inherit Expr Atom Binding KeyName Params String AntiquotedText;
-  inherit listOf maybe either anyVal textVal intVal floatVal boolVal;
+in
+{
+  inherit
+    Expr
+    Atom
+    Binding
+    KeyName
+    Params
+    String
+    AntiquotedText
+    ;
+  inherit
+    listOf
+    maybe
+    either
+    anyVal
+    textVal
+    intVal
+    floatVal
+    boolVal
+    ;
 }

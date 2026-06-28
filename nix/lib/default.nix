@@ -39,25 +39,17 @@ in
   toAST =
     value:
     let
-      go =
-        v:
-        if builtins.isBool v then
-          syntax.mkBool v
-        else if builtins.isInt v then
-          syntax.mkInt v
-        else if builtins.isFloat v then
-          syntax.mkFloat v
-        else if builtins.isNull v then
-          syntax.mkNull
-        else if builtins.isString v then
-          syntax.mkDoubleQuoted [ (syntax.mkPlain v) ]
-        else if builtins.isPath v then
-          syntax.mkLiteralPath (toString v)
-        else if builtins.isList v then
-          syntax.mkList (map go v)
-        else if builtins.isFunction v then
-          throw "toAST: cannot convert function to AST"
-        else if builtins.isAttrs v then
+      go = v:
+        with builtins;
+        if isBool v then syntax.mkBool v
+        else if isInt v then syntax.mkInt v
+        else if isFloat v then syntax.mkFloat v
+        else if isNull v then syntax.mkNull
+        else if isString v then syntax.mkDoubleQuoted [ (syntax.mkPlain v) ]
+        else if isPath v then syntax.mkLiteralPath (toString v)
+        else if isList v then syntax.mkList (map go v)
+        else if isFunction v then throw "toAST: cannot convert function to AST"
+        else if isAttrs v then
           if v ? type && v.type == "derivation" then
             throw "toAST: cannot convert derivation to AST"
           else

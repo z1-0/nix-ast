@@ -140,6 +140,15 @@ cases =
     , -- Has attribute
       ("has attr", "x ? y")
     , ("has attr deep", "x ? y.z")
+    , -- Edge cases
+      ("escape newline", "\"foo\\nbar\"")
+    , ("escape tab", "\"foo\\tbar\"")
+    , ("escape backslash", "\"foo\\\\bar\"")
+    , ("escape quote", "\"foo\\\"bar\"")
+    , ("deep nested let", "let x = let y = 1; in y; in x")
+    , ("nested let-in-if", "let x = let a = 1; b = 2; in a + b; in if x > 2 then x else 0")
+    , ("complex param set", "{ x ? 1, y, ... }: x + y")
+    , ("param set nested default", "{ x ? { a = 1; }, y }: x.a + y")
     ]
 
 ----------------------------------------------------------------------
@@ -354,7 +363,7 @@ stripPositions (Fix x) = Fix (go x)
     go (HT.NUnary op a) = HT.NUnary op (stripPositions a)
     go (HT.NWith ns b) = HT.NWith (stripPositions ns) (stripPositions b)
 
-    stripBinding (HT.NamedVar path val _) = HT.NamedVar path val HT.nullPos
+    stripBinding (HT.NamedVar path val _) = HT.NamedVar path (stripPositions val) HT.nullPos
     stripBinding (HT.Inherit scope names _) = HT.Inherit scope names HT.nullPos
 
     stripParams (HT.Param n) = HT.Param n

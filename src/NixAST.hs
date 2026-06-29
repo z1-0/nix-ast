@@ -22,7 +22,7 @@ import Prettyprinter.Render.Text (renderStrict)
 jsonToNix :: BL.ByteString -> Either Text Text
 jsonToNix bs = case eitherDecode @Expr bs of
     Left err -> Left $ "JSON decode failed: " <> T.pack err
-    Right expr -> Right $ renderNix (fromExpr expr)
+    Right expr -> renderNix <$> fromExpr expr
 
 nixToJSON :: Text -> Either Text BL.ByteString
 nixToJSON src = encode . toExpr <$> parseNix src

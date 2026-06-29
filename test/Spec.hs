@@ -42,21 +42,22 @@ mkTest (name, src) =
             let json = encode (toExpr expr)
             case decode @Expr json of
                 Nothing -> assertFailure "JSON decode failed (type mismatch)"
-                Just ourExpr -> do
-                    let hnixBack = fromExpr ourExpr
-                        src2 = renderNix hnixBack
-                    case parseNixText src2 of
-                        Left err ->
-                            assertFailure
-                                ( "Re-parse failed: "
-                                    <> show err
-                                    <> "\n  src: "
-                                    <> show src
-                                    <> "\n  src2: "
-                                    <> show src2
-                                )
-                        Right expr2 ->
-                            stripPositions expr @?= stripPositions expr2
+                Just ourExpr -> case fromExpr ourExpr of
+                    Left err -> assertFailure ("fromExpr failed: " <> T.unpack err)
+                    Right hnixBack -> do
+                        let src2 = renderNix hnixBack
+                        case parseNixText src2 of
+                            Left err ->
+                                assertFailure
+                                    ( "Re-parse failed: "
+                                        <> show err
+                                        <> "\n  src: "
+                                        <> show src
+                                        <> "\n  src2: "
+                                        <> show src2
+                                    )
+                            Right expr2 ->
+                                stripPositions expr @?= stripPositions expr2
 
 ----------------------------------------------------------------------
 -- jsonToNix: JSON → Nix → re-parse roundtrip

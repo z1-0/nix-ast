@@ -3,11 +3,11 @@ module NixAST.Convert (
     toExpr,
 ) where
 
+import Control.Applicative (liftA3)
 import Data.Coerce (coerce)
 import Data.Fix (Fix (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
-import Data.Text qualified as T
 import Nix.Atoms qualified as HT
 import Nix.Expr.Types qualified as HT
 import Nix.Prelude (Path (..))
@@ -75,28 +75,28 @@ toParams (HT.ParamSet args variadic set) = NT.ParamSet args isVariadic (map conv
 -- Expr → HT.NExpr
 ----------------------------------------------------------------------
 
-fromExpr :: NT.Expr -> HT.NExpr
-fromExpr = Fix . fromExprF
+fromExpr :: NT.Expr -> Either Text HT.NExpr
+fromExpr expr = Fix <$> fromExprF expr
 
-fromExprF :: NT.Expr -> HT.NExprF HT.NExpr
-fromExprF NT.Abs{..}            = HT.NAbs (fromParams params) (fromExpr body)
-fromExprF NT.App{..}            = HT.NApp (fromExpr func) (fromExpr arg)
-fromExprF NT.Assert{..}         = HT.NAssert (fromExpr cond) (fromExpr body)
-fromExprF NT.Binary{..}         = HT.NBinary (fromBinaryOp op) (fromExpr left) (fromExpr right)
-fromExprF (NT.Constant atom)    = HT.NConstant (fromAtom atom)
-fromExprF (NT.EnvPath path)     = HT.NEnvPath (Path path)
-fromExprF NT.HasAttr{..}        = HT.NHasAttr (fromExpr expr) (NE.map fromKey attrPath)
-fromExprF NT.If{..}             = HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
-fromExprF NT.Let{..}            = HT.NLet (map fromBinding bindings) (fromExpr body)
-fromExprF (NT.List items)       = HT.NList (map fromExpr items)
-fromExprF (NT.LiteralPath path) = HT.NLiteralPath (Path path)
-fromExprF NT.Select{..}         = HT.NSelect (fmap fromExpr defaultValue) (fromExpr expr) (NE.map fromKey selectPath)
-fromExprF NT.Set{..}            = HT.NSet (if recursive then HT.Recursive else HT.NonRecursive) (map fromBinding bindings)
-fromExprF (NT.Str value)        = HT.NStr (fromNString value)
-fromExprF (NT.Sym name)         = HT.NSym name
-fromExprF (NT.SynHole name)     = HT.NSynHole name
-fromExprF NT.Unary{..}          = HT.NUnary (fromUnaryOp op) (fromExpr arg)
-fromExprF NT.With{..}           = HT.NWith (fromExpr namespace) (fromExpr body)
+fromExprF :: NT.Expr -> Either Text (HT.NExprF HT.NExpr)
+fromExprF NT.Abs{..}            = liftA2 HT.NAbs (fromParams params) (fromExpr body)
+fromExprF NT.App{..}            = liftA2 HT.NApp (fromExpr func) (fromExpr arg)
+fromExprF NT.Assert{..}         = liftA2 HT.NAssert (fromExpr cond) (fromExpr body)
+fromExprF NT.Binary{..}         = liftA3 HT.NBinary (fromBinaryOp op) (fromExpr left) (fromExpr right)
+fromExprF (NT.Constant atom)    = pure $ HT.NConstant (fromAtom atom)
+fromExprF (NT.EnvPath path)     = pure $ HT.NEnvPath (Path path)
+fromExprF NT.HasAttr{..}        = liftA2 HT.NHasAttr (fromExpr expr) (traverse fromKey attrPath)
+fromExprF NT.If{..}             = liftA3 HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
+fromExprF NT.Let{..}            = liftA2 HT.NLet (traverse fromBinding bindings) (fromExpr body)
+fromExprF (NT.List items)       = HT.NList <$> traverse fromExpr items
+fromExprF (NT.LiteralPath path) = pure $ HT.NLiteralPath (Path path)
+fromExprF NT.Select{..}         = liftA3 HT.NSelect (traverse fromExpr defaultValue) (fromExpr expr) (traverse fromKey selectPath)
+fromExprF NT.Set{..}            = HT.NSet s <$> traverse fromBinding bindings where s = if recursive then HT.Recursive else HT.NonRecursive
+fromExprF (NT.Str value)        = HT.NStr <$> fromNString value
+fromExprF (NT.Sym name)         = pure $ HT.NSym name
+fromExprF (NT.SynHole name)     = pure $ HT.NSynHole name
+fromExprF NT.Unary{..}          = liftA2 HT.NUnary (fromUnaryOp op) (fromExpr arg)
+fromExprF NT.With{..}           = liftA2 HT.NWith (fromExpr namespace) (fromExpr body)
 
 fromAtom :: NT.Atom -> HT.NAtom
 fromAtom (NT.Bool b)  = HT.NBool b
@@ -105,32 +105,31 @@ fromAtom (NT.Int i)   = HT.NInt i
 fromAtom (NT.Uri t)   = HT.NURI t
 fromAtom NT.Null      = HT.NNull
 
-fromNString :: NT.String -> HT.NString HT.NExpr
-fromNString (NT.DoubleQuoted parts) = HT.DoubleQuoted (map fromAntiquoted parts)
-fromNString (NT.Indented n parts)   = HT.Indented n (map fromAntiquoted parts)
+fromNString :: NT.String -> Either Text (HT.NString HT.NExpr)
+fromNString (NT.DoubleQuoted parts) = HT.DoubleQuoted <$> traverse fromAntiquoted parts
+fromNString (NT.Indented n parts)   = HT.Indented n <$> traverse fromAntiquoted parts
 
-fromAntiquoted :: NT.Antiquoted Text -> HT.Antiquoted Text HT.NExpr
-fromAntiquoted (NT.Antiquoted e) = HT.Antiquoted (fromExpr e)
-fromAntiquoted (NT.Plain t)      = HT.Plain t
-fromAntiquoted NT.EscapedNewline = HT.EscapedNewline
+fromAntiquoted :: NT.Antiquoted Text -> Either Text (HT.Antiquoted Text HT.NExpr)
+fromAntiquoted (NT.Antiquoted e) = HT.Antiquoted <$> fromExpr e
+fromAntiquoted (NT.Plain t)      = pure $ HT.Plain t
+fromAntiquoted NT.EscapedNewline = pure HT.EscapedNewline
 
-fromBinding :: NT.Binding -> HT.Binding HT.NExpr
-fromBinding NT.Inherit{..}  = HT.Inherit (fmap fromExpr scope) names HT.nullPos
-fromBinding NT.NamedVar{..} = HT.NamedVar (NE.map fromKey attrPath) (fromExpr value) HT.nullPos
+fromBinding :: NT.Binding -> Either Text (HT.Binding HT.NExpr)
+fromBinding NT.Inherit{..}  = HT.Inherit <$> traverse fromExpr scope <*> pure names <*> pure HT.nullPos
+fromBinding NT.NamedVar{..} = HT.NamedVar <$> traverse fromKey attrPath <*> fromExpr value <*> pure HT.nullPos
 
-fromKey :: NT.KeyName -> HT.NKeyName HT.NExpr
-fromKey (NT.DynamicKey (NT.Antiquoted e)) = HT.DynamicKey (HT.Antiquoted (fromExpr e))
-fromKey (NT.DynamicKey (NT.Plain s))      = HT.DynamicKey (HT.Plain (fromNString s))
-fromKey (NT.DynamicKey NT.EscapedNewline) = HT.DynamicKey HT.EscapedNewline
-fromKey (NT.StaticKey n)                  = HT.StaticKey n
+fromKey :: NT.KeyName -> Either Text (HT.NKeyName HT.NExpr)
+fromKey (NT.DynamicKey (NT.Antiquoted e)) = HT.DynamicKey . HT.Antiquoted <$> fromExpr e
+fromKey (NT.DynamicKey (NT.Plain s))      = HT.DynamicKey . HT.Plain <$> fromNString s
+fromKey (NT.DynamicKey NT.EscapedNewline) = pure $ HT.DynamicKey HT.EscapedNewline
+fromKey (NT.StaticKey n)                  = pure $ HT.StaticKey n
 
-fromParams :: NT.Params -> HT.Params HT.NExpr
-fromParams (NT.Param paramName)       = HT.Param paramName
-fromParams NT.ParamSet{..}            = HT.ParamSet paramSetName v (map convertParam params)
+fromParams :: NT.Params -> Either Text (HT.Params HT.NExpr)
+fromParams (NT.Param paramName) = pure $ HT.Param paramName
+fromParams NT.ParamSet{..}      = HT.ParamSet paramSetName v <$> traverse convertParam params
   where
-    convertParam (name, defaultValue) = (name, fmap fromExpr defaultValue)
+    convertParam (name, defaultValue) = (name,) <$> traverse fromExpr defaultValue
     v                                 = if variadic then HT.Variadic else HT.Closed
-
 
 ----------------------------------------------------------------------
 -- Op mapping
@@ -157,25 +156,25 @@ binaryOpToText HT.NOr     = "||"
 binaryOpToText HT.NPlus   = "+"
 binaryOpToText HT.NUpdate = "//"
 
-fromUnaryOp :: Text -> HT.NUnaryOp
-fromUnaryOp "!"           = HT.NNot
-fromUnaryOp "-"           = HT.NNeg
-fromUnaryOp op            = error ("Unknown unary operator: " <> T.unpack op)
+fromUnaryOp :: Text -> Either Text HT.NUnaryOp
+fromUnaryOp "!"           = Right HT.NNot
+fromUnaryOp "-"           = Right HT.NNeg
+fromUnaryOp op            = Left ("Unknown unary operator: " <> op)
 
-fromBinaryOp :: Text -> HT.NBinaryOp
-fromBinaryOp "!="         = HT.NNEq
-fromBinaryOp "&&"         = HT.NAnd
-fromBinaryOp "++"         = HT.NConcat
-fromBinaryOp "-"          = HT.NMinus
-fromBinaryOp "//"         = HT.NUpdate
-fromBinaryOp "/"          = HT.NDiv
-fromBinaryOp "->"         = HT.NImpl
-fromBinaryOp "<"          = HT.NLt
-fromBinaryOp "<="         = HT.NLte
-fromBinaryOp "=="         = HT.NEq
-fromBinaryOp ">"          = HT.NGt
-fromBinaryOp ">="         = HT.NGte
-fromBinaryOp "*"          = HT.NMult
-fromBinaryOp "||"         = HT.NOr
-fromBinaryOp "+"          = HT.NPlus
-fromBinaryOp op           = error ("Unknown binary operator: " <> T.unpack op)
+fromBinaryOp :: Text -> Either Text HT.NBinaryOp
+fromBinaryOp "!="         = Right HT.NNEq
+fromBinaryOp "&&"         = Right HT.NAnd
+fromBinaryOp "++"         = Right HT.NConcat
+fromBinaryOp "-"          = Right HT.NMinus
+fromBinaryOp "//"         = Right HT.NUpdate
+fromBinaryOp "/"          = Right HT.NDiv
+fromBinaryOp "->"         = Right HT.NImpl
+fromBinaryOp "<"          = Right HT.NLt
+fromBinaryOp "<="         = Right HT.NLte
+fromBinaryOp "=="         = Right HT.NEq
+fromBinaryOp ">"          = Right HT.NGt
+fromBinaryOp ">="         = Right HT.NGte
+fromBinaryOp "*"          = Right HT.NMult
+fromBinaryOp "||"         = Right HT.NOr
+fromBinaryOp "+"          = Right HT.NPlus
+fromBinaryOp op           = Left ("Unknown binary operator: " <> op)

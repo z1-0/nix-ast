@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/z1-0/nix-ast/compare/v0.2.0...v0.3.0) (2026-06-29)
+
+
+### Features
+
+* add lib output to flake, expose nix/lib as flake lib ([98e2b4f](https://github.com/z1-0/nix-ast/commit/98e2b4f42e551a23b0f7f97ae8a87194f1496027))
+* add toAST function for converting Nix values to AST ([8412175](https://github.com/z1-0/nix-ast/commit/8412175e68bcb45b23eb27a168f21f3b52ffcf6a))
+* **Convert.hs:** replace error with Either Text in op conversion ([9fc3f4c](https://github.com/z1-0/nix-ast/commit/9fc3f4c4197f0724307350347d969333ce93f40e))
+* rename gen to render, add --expr and --json flags ([befb00a](https://github.com/z1-0/nix-ast/commit/befb00afb6953f589b547acf76093ac1cb465a79))
+* use fileset to narrow build src ([b3218cb](https://github.com/z1-0/nix-ast/commit/b3218cbe7433b50555f87fd6e0cb71745cc7007e))
+
+
+### Bug Fixes
+
+* **CLI.hs:** detect tty stdin to prevent hang on missing input ([a1432bc](https://github.com/z1-0/nix-ast/commit/a1432bc0be857a8b0fc55fb8f28281d5581dfcaa))
+* drop impure nixpkgs import, pass pkgs to IFD funcs ([d1f31ee](https://github.com/z1-0/nix-ast/commit/d1f31ee00d30075bd9b91d3e491d6229bfbe1ec7))
+* encode JSON AST to UTF-8 bytes via encodeUtf8 ([4a66649](https://github.com/z1-0/nix-ast/commit/4a66649ddff85b2a2d566b2fe3b1f1edc9fe11c0))
+
 ## [0.2.0](https://github.com/z1-0/nix-ast/compare/v0.1.0...v0.2.0) (2026-06-24)
 
 

@@ -13,15 +13,19 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v31
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      - run: nix develop --print-build-logs -c cabal test
+      - name: Run cabal tests
+        run: nix develop --print-build-logs -c cabal test
 
-      - run: nix flake check --print-build-logs
+      - name: Run flake check
+        run: nix flake check --print-build-logs

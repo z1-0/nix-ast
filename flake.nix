@@ -31,12 +31,15 @@
           inherit nix-ast;
         };
 
-        checks.tests = pkgs.runCommand "nix-ast-tests" {
-          requiredTestResults = import ./nix/tests.nix {
-            inherit pkgs;
-            inherit (self) lib;
-          };
-        } "echo all tests passed > $out";
+        checks = {
+          inherit nix-ast;
+          tests = pkgs.runCommand "nix-ast-tests" {
+            requiredTestResults = import ./nix/tests.nix {
+              inherit pkgs;
+              inherit (self) lib;
+            };
+          } "echo all tests passed > $out";
+        };
 
         devShells.default = hpkgs.shellFor {
           packages = p: [ nix-ast ];

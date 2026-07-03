@@ -23,16 +23,25 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         hpkgs = pkgs.haskellPackages;
-        nix-ast = hpkgs.callCabal2nix "nix-ast" src { };
+        hlib = pkgs.haskell.lib;
+        nix-ast-dev = hpkgs.callCabal2nix "nix-ast" src { };
+        nix-ast-release = hlib.justStaticExecutables (
+          hlib.appendConfigureFlags nix-ast-dev [
+            "--ghc-option=-O2"
+            "--ghc-option=-threaded"
+            "--ghc-option=-rtsopts"
+            "--ghc-option=-with-rtsopts=-N"
+          ]
+        );
       in
       {
         packages = {
-          default = nix-ast;
-          inherit nix-ast;
+          default = nix-ast-release;
+          nix-ast = nix-ast-release;
         };
 
         checks = {
-          inherit nix-ast;
+          inherit nix-ast-dev;
           tests = pkgs.runCommand "nix-ast-tests" {
             requiredTestResults = import ./nix/tests.nix {
               inherit pkgs;
@@ -42,7 +51,7 @@
         };
 
         devShells.default = hpkgs.shellFor {
-          packages = p: [ nix-ast ];
+          packages = p: [ nix-ast-dev ];
           buildInputs = with pkgs; [
             cabal-install
             fourmolu

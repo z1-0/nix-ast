@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/z1-0/nix-ast/compare/v0.3.1...v0.4.0) (2026-07-03)
+
+
+### Features
+
+* extract NixAST.Input module from CLI ([cfa88ea](https://github.com/z1-0/nix-ast/commit/cfa88ea87eaceac3f7c8c62b170c1c6822c69104))
+
 ## [0.3.1](https://github.com/z1-0/nix-ast/compare/v0.3.0...v0.3.1) (2026-07-01)
 
 

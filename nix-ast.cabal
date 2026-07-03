@@ -43,6 +43,7 @@ library
   exposed-modules:
     NixAST
     NixAST.Convert
+    NixAST.Input
     NixAST.Types
 
   hs-source-dirs:  src

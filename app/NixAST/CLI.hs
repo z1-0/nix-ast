@@ -1,6 +1,5 @@
 module NixAST.CLI (
     Command (..),
-    Input (..),
     opts,
     runParse,
     runRender,
@@ -8,25 +7,20 @@ module NixAST.CLI (
 
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack)
-import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
+import NixAST.Input (Input)
+import NixAST.Input qualified as Input
 import Options.Applicative
 import Options.Applicative.Help (parserHelp, renderHelp)
 import Paths_nix_ast (version)
 import System.Exit (exitFailure)
-import System.IO (hIsTerminalDevice, stderr, stdin)
+import System.IO (stderr)
 
 data Command
     = Parse Input
     | Render Input
-
-data Input
-    = FromFile FilePath
-    | FromStdin
-    | FromExpr Text
-    | FromJSON Text
 
 parseInfo :: ParserInfo Command
 parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to JSON AST")
@@ -42,10 +36,10 @@ parseCommand =
         )
 
 parseOpt :: Parser Input
-parseOpt = exprOpt <|> fileOpt <|> pure FromStdin
+parseOpt = exprOpt <|> fileOpt <|> pure (Input.fromStdin showParseHelp showParseHelp)
   where
     exprOpt =
-        FromExpr
+        Input.fromExpr
             <$> strOption
                 ( long "expr"
                     <> metavar "EXPR"
@@ -53,10 +47,10 @@ parseOpt = exprOpt <|> fileOpt <|> pure FromStdin
                 )
 
 renderOpt :: Parser Input
-renderOpt = jsonOpt <|> fileOpt <|> pure FromStdin
+renderOpt = jsonOpt <|> fileOpt <|> pure (Input.fromStdin showRenderHelp showRenderHelp)
   where
     jsonOpt =
-        FromJSON
+        Input.fromJSON
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
@@ -65,7 +59,7 @@ renderOpt = jsonOpt <|> fileOpt <|> pure FromStdin
 
 fileOpt :: Parser Input
 fileOpt =
-    FromFile
+    Input.fromFile
         <$> strOption
             ( long "file"
                 <> short 'f'
@@ -92,14 +86,14 @@ opts =
 
 runParse :: Input -> IO ()
 runParse input = do
-    src <- readInput input
+    src <- Input.readText input
     case nixToJSON src of
         Left err -> die err
         Right json -> BL.putStr (json <> "\n")
 
 runRender :: Input -> IO ()
 runRender input = do
-    bs <- readInputBS input
+    bs <- Input.readBytes input
     case jsonToNix bs of
         Left err -> die err
         Right nix -> TIO.putStrLn nix
@@ -107,21 +101,11 @@ runRender input = do
 die :: Text -> IO a
 die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
 
-readInput :: Input -> IO Text
-readInput (FromFile path) = TIO.readFile path
-readInput FromStdin = do
-    isTty <- hIsTerminalDevice stdin
-    if isTty then showSubcommandHelp (Parse <$> parseOpt) else TIO.getContents
-readInput (FromExpr expr) = pure expr
-readInput (FromJSON json) = pure json
+showParseHelp :: IO a
+showParseHelp = showSubcommandHelp (Parse <$> parseOpt)
 
-readInputBS :: Input -> IO BL.ByteString
-readInputBS (FromFile path) = BL.readFile path
-readInputBS FromStdin = do
-    isTty <- hIsTerminalDevice stdin
-    if isTty then showSubcommandHelp (Render <$> renderOpt) else BL.getContents
-readInputBS (FromExpr _) = die "--expr is only supported for parse"
-readInputBS (FromJSON json) = pure (BL.fromStrict (encodeUtf8 json))
+showRenderHelp :: IO a
+showRenderHelp = showSubcommandHelp (Render <$> renderOpt)
 
 showSubcommandHelp :: Parser Command -> IO a
 showSubcommandHelp p = do

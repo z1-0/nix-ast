@@ -1,3 +1,32 @@
+# traversal.nix — AST traversal primitives
+#
+# This module provides functions for traversing and transforming Nix AST nodes.
+#
+# ## children/rebuild contract
+#
+# `children` and `rebuild` form a paired API with an implicit ordering contract:
+#
+#   - `children node` returns a list of child nodes in a deterministic order.
+#   - `rebuild node cs` replaces the children of `node` with the list `cs`,
+#     where `cs[i]` corresponds to the i-th element returned by `children node`.
+#
+# **Invariant**: For any node `n`:
+#   rebuild n (children n) == n
+#
+# **Warning**: If you change the order of children returned by `children`,
+# you MUST update `rebuild` to match, otherwise `descend`, `holes`, `contexts`,
+# `para`, `transform`, `rewrite`, and `universe` will produce incorrect results.
+#
+# The `descend` function relies on this contract:
+#   descend f node = rebuild node (map f (children node))
+#
+# ## Adding a new AST node type
+#
+# When adding a new constructor to the AST, you must update:
+#   1. `children` — define which fields are child nodes and their order
+#   2. `rebuild`  — reconstruct the node from the new children list
+#   3. Keep the order consistent between both functions
+
 let
   match = import ./match.nix;
 
@@ -43,6 +72,10 @@ let
 in
 rec {
   # children :: Node -> [Node]
+  #
+  # Returns the immediate child nodes in a deterministic order.
+  # CONTRACT: The order returned here MUST match the order expected by `rebuild`.
+  # See module documentation for details.
   children =
     node:
     match node {
@@ -173,6 +206,11 @@ rec {
   para = f: node: f node (map (para f) (children node));
 
   # rebuild :: Node -> [Node] -> Node
+  #
+  # Reconstructs a node with new children. The i-th element of `cs` replaces
+  # the i-th child returned by `children node`.
+  # CONTRACT: The replacement order MUST match the order from `children`.
+  # See module documentation for details.
   rebuild =
     node: cs:
     match node {

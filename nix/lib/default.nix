@@ -41,7 +41,7 @@ in
 
   # Convert any Nix value to its AST, recursing into attrsets and lists.
   # Functions and derivations are not supported and will raise an error.
-  # toAST :: Any -> AST
+  # toAST :: a -> AST
   toAST =
     value:
     let

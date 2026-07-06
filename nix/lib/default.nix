@@ -4,13 +4,19 @@ let
   match = import ./match.nix;
   syntax = import ./syntax.nix;
   traversal = import ./traversal.nix;
-  types = import ./types.nix;
 
   nix-ast-cli = pkgs: packages.${pkgs.stdenv.hostPlatform.system}.nix-ast;
 in
 
 {
-  inherit match syntax traversal types ;
+  inherit
+    # pseudo pattern matching over node tag
+    match
+    # type-checked constructors and predicates
+    syntax
+    # traversal and transformation
+    traversal
+    ;
 
   # Convert an AST value to a .nix file.
   # NOTE: This is an IFD (Import From Derivation) function.
@@ -39,7 +45,8 @@ in
   toAST =
     value:
     let
-      go = v:
+      go =
+        v:
         with builtins;
         if isBool v then syntax.mkBool v
         else if isInt v then syntax.mkInt v

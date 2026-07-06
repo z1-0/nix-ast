@@ -1,4 +1,4 @@
-# traversal.nix — AST traversal primitives
+# ## AST traversal primitives
 #
 # This module provides functions for traversing and transforming Nix AST nodes.
 #

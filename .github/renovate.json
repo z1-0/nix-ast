@@ -1,24 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
-  "labels": ["dependencies"],
-  "packageRules": [
-    {
-      "matchManagers": ["nix"],
-      "groupName": "Flake inputs",
-      "automerge": false,
-      "labels": ["nix"]
-    },
-    {
-      "matchManagers": ["haskell-cabal"],
-      "automerge": false,
-      "labels": ["haskell"]
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions",
-      "automerge": false,
-      "labels": ["github-actions"]
-    }
-  ]
+  "extends": [
+    "config:best-practices",
+    "group:allNonMajor",
+    ":maintainLockFilesWeekly"
+  ],
+  "nix": { "enabled": true }
 }

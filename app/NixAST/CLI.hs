@@ -23,10 +23,10 @@ data Command
     | Render Input
 
 parseInfo :: ParserInfo Command
-parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to JSON AST")
+parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to AST")
 
 renderInfo :: ParserInfo Command
-renderInfo = info (Render <$> renderOpt) (progDesc "Generate Nix expression from JSON AST")
+renderInfo = info (Render <$> renderOpt) (progDesc "Generate Nix expression from AST")
 
 parseCommand :: Parser Command
 parseCommand =
@@ -54,7 +54,7 @@ renderOpt = jsonOpt <|> fileOpt <|> pure (Input.fromStdin showRenderHelp showRen
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
-                    <> help "JSON AST string"
+                    <> help "AST in JSON format"
                 )
 
 fileOpt :: Parser Input

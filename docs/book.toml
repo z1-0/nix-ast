@@ -1,0 +1,12 @@
+[book]
+title = "nix-ast"
+authors = ["z1-0"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/z1-0/nix-ast"
+edit-url-template = "https://github.com/z1-0/nix-ast/edit/main/docs/{path}"

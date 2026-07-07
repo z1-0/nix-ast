@@ -23,6 +23,6 @@ cabal.project.local~
 cabal.sandbox.config
 dist
 dist-*
-docs
+docs/book
 result
 result-*

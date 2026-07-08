@@ -10,6 +10,8 @@ type ParamSet = [(Text, Maybe Expr)]
 
 `ParamSet` represents the parameter set structure in function definitions — the `{ x, y ? 1, ... }` part. It maps parameter names to their optional default values. The `variadic` field on `ParamSet` distinguishes fixed (`false`) from variadic / ellipsis (`true`) parameter sets.
 
+> **Invariant**: duplicate parameter names are semantically invalid in Nix. Each parameter name must be unique.
+
 ## Used In
 
 - `Params.ParamSet.params` — the parameter set inside a `ParamSet` constructor

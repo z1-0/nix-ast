@@ -8,7 +8,7 @@ type AttrPath = NonEmpty KeyName
 
 ## Description
 
-`AttrPath` represents a path to an attribute in an attribute set, like `foo.bar.baz`. It is a `NonEmpty` list of `KeyName` because an attribute path must have at least one component.
+`AttrPath` represents a path to an attribute in an attribute set, like `foo.bar.baz`. An attribute path must be **non-empty**: it always contains at least one key.
 
 ## Structure
 

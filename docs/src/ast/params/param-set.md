@@ -22,6 +22,12 @@ ParamSet { paramSetName :: Maybe VarName, variadic :: Bool, params :: ParamSet }
 
 The inner `ParamSet` field wraps a parameter set type that maps parameter names to optional default expressions.
 
+```
+type ParamSet = [(Text, Maybe Expr)]
+```
+
+> **Invariant**: duplicate parameter names are semantically invalid in Nix. Each parameter name must be unique.
+
 ## Nix Source ↔ AST
 
 ### Fixed Parameters

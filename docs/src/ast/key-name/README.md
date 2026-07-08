@@ -26,6 +26,5 @@
 
 ```nix
 syntax.mkStaticKey "foo"
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [syntax.mkPlain "foo bar"])
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [syntax.mkAntiquoted (syntax.mkSym "name")])
+syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
 ```

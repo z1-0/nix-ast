@@ -43,6 +43,6 @@ AttrPath [ DynamicKey (Antiquoted (Sym "dynamicKey")), StaticKey "static" ]
 
 ```nix
 syntax.mkStaticKey "foo"
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [...])
+syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
 -- Build AttrPath as a list of KeyName
 ```

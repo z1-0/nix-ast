@@ -4,13 +4,15 @@
 
 | Constructor | Fields | Description |
 |-------------|--------|-------------|
-| `Plain` | `contents: Text` | Literal text |
+| `Plain` | `contents: v` | Literal value — `Text` in string parts, `String` in `DynamicKey` |
 | `Antiquoted` | `contents: Expr` | Embedded expression `${...}` |
 | `EscapedNewline` | (none) | Escaped newline `\` in indented strings |
 
 ## Description
 
-`Antiquoted` represents string parts: literal text or interpolated expressions.
+`Antiquoted` is polymorphic in the `Plain` constructor. It is used at two type arguments:
+- **`Antiquoted Text`** — in string parts (`DoubleQuoted` / `Indented`), `Plain` wraps literal text.
+- **`Antiquoted String`** — in `DynamicKey`, `Plain` wraps a `String` AST node (`DoubleQuoted` / `Indented`).
 
 A string like `"hello ${x} world"` becomes a list:
 `[Plain "hello ", Antiquoted (Sym "x"), Plain " world"]`
@@ -29,7 +31,7 @@ A string like `"hello ${x} world"` becomes a list:
 ## Nix Library Access
 
 ```nix
-syntax.mkPlain "hello"
+syntax.mkPlain "hello"       # text content (string parts)
 syntax.mkAntiquoted (syntax.mkSym "x")
 syntax.mkEscapedNewline
 ```

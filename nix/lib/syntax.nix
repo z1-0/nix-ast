@@ -156,7 +156,10 @@ rec {
     };
 
   mkDynamicKey =
-    content: mkNode "DynamicKey" { contents = assertType "mkDynamicKey" "content" t.String content; };
+    content:
+    mkNode "DynamicKey" {
+      contents = assertType "mkDynamicKey" "content" t.AntiquotedString content;
+    };
 
   mkStaticKey =
     keyName: mkNode "StaticKey" { contents = assertType "mkStaticKey" "keyName" t.textVal keyName; };
@@ -175,7 +178,11 @@ rec {
   mkDoubleQuoted = parts: mkStr (mkDoubleQuotedNode parts);
   mkIndented = indent: parts: mkStr (mkIndentedNode indent parts);
 
-  mkPlain = content: mkNode "Plain" { contents = assertType "mkPlain" "content" t.textVal content; };
+  mkPlain =
+    content:
+    mkNode "Plain" {
+      contents = assertType "mkPlain" "content" (t.either t.textVal t.String) content;
+    };
   mkAntiquoted =
     expr: mkNode "Antiquoted" { contents = assertType "mkAntiquoted" "expr" t.Expr expr; };
   mkEscapedNewline = mkNode "EscapedNewline" { };

@@ -32,10 +32,13 @@ The contents is an `Antiquoted String`, meaning it can be:
 {
   "tag": "DynamicKey",
   "contents": {
-    "tag": "DoubleQuoted",
-    "contents": [
-      { "tag": "Plain", "contents": "foo bar" }
-    ]
+    "tag": "Plain",
+    "contents": {
+      "tag": "DoubleQuoted",
+      "contents": [
+        { "tag": "Plain", "contents": "foo bar" }
+      ]
+    }
   }
 }
 ```
@@ -49,10 +52,8 @@ let name = "foo"; in { ${name} = 1; }
 {
   "tag": "DynamicKey",
   "contents": {
-    "tag": "DoubleQuoted",
-    "contents": [
-      { "tag": "Antiquoted", "contents": { "tag": "Sym", "contents": "name" } }
-    ]
+    "tag": "Antiquoted",
+    "contents": { "tag": "Sym", "contents": "name" }
   }
 }
 ```
@@ -67,6 +68,6 @@ let name = "foo"; in { ${name} = 1; }
 ## Nix Library Access
 
 ```nix
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [syntax.mkPlain "foo bar"])
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [syntax.mkAntiquoted (syntax.mkSym "name")])
+syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
+# Plain + String variant (rare): `{ tag = "Plain"; contents = syntax.mkDoubleQuoted [...]; }`
 ```

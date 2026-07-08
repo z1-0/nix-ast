@@ -55,8 +55,8 @@ let name = "foo"; in { ${name} = 1; }
   "tag": "NamedVar",
   "attrPath": [
     { "tag": "DynamicKey", "contents": {
-        "tag": "DoubleQuoted",
-        "contents": [{ "tag": "Antiquoted", "contents": { "tag": "Sym", "contents": "name" } }]
+        "tag": "Antiquoted",
+        "contents": { "tag": "Sym", "contents": "name" }
       }
     }
   ],

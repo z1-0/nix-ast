@@ -77,6 +77,15 @@ let
     ];
   };
 
+  AntiquotedString = {
+    name = "Antiquoted String";
+    check = isNodeOf [
+      "Plain"
+      "Antiquoted"
+      "EscapedNewline"
+    ];
+  };
+
   # Combinators
   listOf = type: {
     name = "listOf ${type.name}";
@@ -127,6 +136,7 @@ in
     Params
     String
     AntiquotedText
+    AntiquotedString
     ;
   inherit
     listOf

@@ -53,7 +53,7 @@ syntax.mkNamedVar [ syntax.mkStaticKey "x" ] (syntax.mkInt 1)
 
 ```nix
 syntax.mkStaticKey "foo"
-syntax.mkDynamicKey (syntax.mkDoubleQuoted [ syntax.mkPlain "foo bar" ])
+syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
 ```
 
 ### Parameters

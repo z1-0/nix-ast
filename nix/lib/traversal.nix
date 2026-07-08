@@ -11,6 +11,80 @@ let
 
   match = import ./match.nix;
 
+  # --- Key path helpers ---
+
+  # stringChildren :: Node -> [Node]
+  # Extract antiquoted expressions from a String node (DoubleQuoted/Indented)
+  stringChildren = s: match s {
+    DoubleQuoted = dq: concatMap (p: match p {
+      Antiquoted = { contents, ... }: [ contents ];
+      _ = _: [ ];
+    }) dq.contents;
+    Indented = ind: concatMap (p: match p {
+      Antiquoted = { contents, ... }: [ contents ];
+      _ = _: [ ];
+    }) ind.parts;
+  };
+
+  # keyChildren :: Node -> [Node]
+  # Extract expressions from a KeyName node
+  keyChildren = key: match key {
+    DynamicKey = { contents, ... }: match contents {
+      Antiquoted = { contents, ... }: [ contents ];
+      Plain = { contents, ... }: stringChildren contents;
+      EscapedNewline = _: [ ];
+    };
+    StaticKey = _: [ ];
+  };
+
+  # rebuildString :: Node -> [Node] -> Int -> { result :: Node, index :: Int }
+  # Rebuild a String node by replacing antiquoted expressions with new children
+  rebuildString = s: cs: index:
+    let
+      parts = match s {
+        DoubleQuoted = dq: dq.contents;
+        Indented = ind: ind.parts;
+      };
+      goParts = acc: i: ps:
+        if ps == [ ] then { result = acc; index = i; }
+        else
+          let p = head ps; rest = tail ps; in
+          match p {
+            Antiquoted = pNode: goParts (acc ++ [ (pNode // { contents = elemAt cs i; }) ]) (i + 1) rest;
+            _ = _: goParts (acc ++ [ p ]) i rest;
+          };
+      rebuilt = goParts [ ] index parts;
+    in
+    {
+      result = match s {
+        DoubleQuoted = _: { tag = "DoubleQuoted"; contents = rebuilt.result; };
+        Indented = _: s // { parts = rebuilt.result; };
+      };
+      index = rebuilt.index;
+    };
+
+  # rebuildKeyPath :: [Node] -> Int -> [Node] -> { result :: [Node], index :: Int }
+  # Rebuild a key path by replacing antiquoted expressions with new children
+  rebuildKeyPath = cs: index: keys:
+    let
+      go = acc: i: ks:
+        if ks == [ ] then { result = acc; index = i; }
+        else
+          let k = head ks; rest = tail ks; in
+          match k {
+            DynamicKey = kNode: match kNode.contents {
+              Antiquoted = _:
+                go (acc ++ [ (kNode // { contents = kNode.contents // { contents = elemAt cs i; }; }) ]) (i + 1) rest;
+              Plain = { contents, ... }:
+                let rebuilt = rebuildString contents cs i; in
+                go (acc ++ [ (kNode // { contents = rebuilt.result; }) ]) rebuilt.index rest;
+              EscapedNewline = _: go (acc ++ [ kNode ]) i rest;
+            };
+            StaticKey = _: go (acc ++ [ k ]) i rest;
+          };
+    in
+    go [ ] index keys;
+
   # bindingChildren :: [Binding] -> [Node]
   bindingChildren =
     bindings:
@@ -18,7 +92,7 @@ let
       b:
       match b {
         Inherit = { scope, ... }: if scope != null then [ scope ] else [ ];
-        NamedVar = { value, ... }: [ value ];
+        NamedVar = { value, attrPath, ... }: [ value ] ++ concatMap keyChildren attrPath;
       }
     ) bindings;
 
@@ -42,7 +116,9 @@ let
                 go (acc ++ [ (b // { scope = elemAt cs index; }) ]) (index + 1) rest
               else
                 go (acc ++ [ b ]) index rest;
-            NamedVar = bNode: go (acc ++ [ (bNode // { value = elemAt cs index; }) ]) (index + 1) rest;
+            NamedVar = bNode:
+              let pathResult = rebuildKeyPath cs (index + 1) bNode.attrPath; in
+              go (acc ++ [ (bNode // { value = elemAt cs index; attrPath = pathResult.result; }) ]) pathResult.index rest;
           };
     in
     go [ ] 0 bindings;
@@ -62,29 +138,14 @@ rec {
       Binary = { left, right, ... }: [ left right ];
       Constant = _: [ ];
       EnvPath = _: [ ];
-      HasAttr = { expr, ... }: [ expr ];
+      HasAttr = { expr, attrPath, ... }: [ expr ] ++ concatMap keyChildren attrPath;
       If = { cond, thenExpr, elseExpr, ... }: [ cond thenExpr elseExpr ];
       Let = { bindings, body, ... }: bindingChildren bindings ++ [ body ];
       List = { contents, ... }: contents;
       LiteralPath = _: [ ];
-      Select = { defaultValue, expr, ... }: [ expr ] ++ (if defaultValue != null then [ defaultValue ] else [ ]);
+      Select = { defaultValue, expr, selectPath, ... }: [ expr ] ++ concatMap keyChildren selectPath ++ (if defaultValue != null then [ defaultValue ] else [ ]);
       Set = { bindings, ... }: bindingChildren bindings;
-      Str =
-        { contents, ... }:
-        let
-          parts = match contents {
-            DoubleQuoted = dq: dq.contents;
-            Indented = ind: ind.parts;
-          };
-          antiquotedExprs = concatMap (
-            p:
-            match p {
-              Antiquoted = { contents, ... }: [ contents ];
-              _ = _: [ ];
-            }
-          ) parts;
-        in
-        antiquotedExprs;
+      Str = { contents, ... }: stringChildren contents;
       Sym = _: [ ];
       SynHole = _: [ ];
       Unary = { arg, ... }: [ arg ];
@@ -188,7 +249,10 @@ rec {
         };
       Constant = n: n;
       EnvPath = n: n;
-      HasAttr = n: n // { expr = head cs; };
+      HasAttr =
+        n:
+        let pathResult = rebuildKeyPath cs 1 n.attrPath; in
+        n // { expr = elemAt cs 0; attrPath = pathResult.result; };
       If =
         n:
         n
@@ -208,38 +272,18 @@ rec {
       LiteralPath = n: n;
       Select =
         n:
+        let pathResult = rebuildKeyPath cs 1 n.selectPath; in
         if n.defaultValue != null then
           n
           // {
             expr = elemAt cs 0;
-            defaultValue = elemAt cs 1;
+            selectPath = pathResult.result;
+            defaultValue = elemAt cs pathResult.index;
           }
         else
-          n // { expr = head cs; };
+          n // { expr = elemAt cs 0; selectPath = pathResult.result; };
       Set = n: n // { bindings = rebuildBindings cs n.bindings; };
-      Str =
-        n:
-        let
-          rebuildParts =
-            acc: index: parts:
-            if parts == [ ] then
-              acc
-            else
-              let
-                p = head parts;
-                rest = tail parts;
-              in
-              match p {
-                Antiquoted =
-                  pNode: rebuildParts (acc ++ [ (pNode // { contents = elemAt cs index; }) ]) (index + 1) rest;
-                _ = _: rebuildParts (acc ++ [ p ]) index rest;
-              };
-          newContents = match n.contents {
-            DoubleQuoted = dq: dq // { contents = rebuildParts [ ] 0 dq.contents; };
-            Indented = ind: ind // { parts = rebuildParts [ ] 0 ind.parts; };
-          };
-        in
-        n // { contents = newContents; };
+      Str = n: n // { contents = (rebuildString n.contents cs 0).result; };
       Sym = n: n;
       SynHole = n: n;
       Unary = n: n // { arg = head cs; };

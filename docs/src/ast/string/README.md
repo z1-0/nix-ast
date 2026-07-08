@@ -2,10 +2,10 @@
 
 ## Constructors
 
-| Constructor | Fields | Description |
-|-------------|--------|-------------|
-| `DoubleQuoted` | `contents: [Antiquoted Text]` | Standard string `"..."` |
-| `Indented` | `indent: Int`, `parts: [Antiquoted Text]` | Multi-line indented string `''...''` |
+| Constructor    | Fields                                    | Description                          |
+| -------------- | ----------------------------------------- | ------------------------------------ |
+| `DoubleQuoted` | `contents: [Antiquoted Text]`             | Standard string `"..."`              |
+| `Indented`     | `indent: Int`, `parts: [Antiquoted Text]` | Multi-line indented string `''...''` |
 
 ## Description
 
@@ -21,6 +21,7 @@ String parts are `Antiquoted Text` — either `Plain` text, `Antiquoted` express
 ## String Parts (Antiquoted)
 
 See [Antiquoted](../antiquoted/README.md) for:
+
 - `Plain` — literal text
 - `Antiquoted` — embedded expression `${...}`
 - `EscapedNewline` — `\` newline in indented strings

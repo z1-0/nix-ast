@@ -8,14 +8,15 @@ NamedVar { attrPath :: AttrPath, value :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type       | Description                                  |
+| ---------- | ---------- | -------------------------------------------- |
 | `attrPath` | `AttrPath` | Attribute path (non-empty list of `KeyName`) |
-| `value` | `Expr` | The bound expression |
+| `value`    | `Expr`     | The bound expression                         |
 
 ## Nix Source ↔ AST
 
 ### Simple Binding
+
 ```nix
 # Nix
 x = 1;
@@ -29,6 +30,7 @@ x = 1;
 ```
 
 ### Nested Path Binding
+
 ```nix
 # Nix
 a.b.c = 1;
@@ -46,6 +48,7 @@ a.b.c = 1;
 ```
 
 ### Dynamic Key Binding
+
 ```nix
 # Nix
 let name = "foo"; in { ${name} = 1; }

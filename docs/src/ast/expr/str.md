@@ -8,8 +8,8 @@ Str String
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type     | Description                                        |
+| ---------- | -------- | -------------------------------------------------- |
 | `contents` | `String` | The string contents (`DoubleQuoted` or `Indented`) |
 
 ## Description
@@ -19,6 +19,7 @@ Str String
 ## Nix Source ↔ AST
 
 ### Double-Quoted String
+
 ```nix
 # Nix
 "hello ${world}"
@@ -37,6 +38,7 @@ Str String
 ```
 
 ### Indented String
+
 ```nix
 # Nix
 ''

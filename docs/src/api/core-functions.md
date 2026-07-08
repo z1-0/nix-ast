@@ -9,12 +9,14 @@ parse :: pkgs -> Path -> AST
 ```
 
 **Parameters:**
+
 - `pkgs` — Nixpkgs instance (used for IFD)
 - `path` — Path to a `.nix` file
 
 **Returns:** AST (JSON attribute set)
 
 **Example:**
+
 ```nix
 ast = lib.parse pkgs ./config.nix;
 ```
@@ -28,12 +30,14 @@ render :: pkgs -> AST -> Path
 ```
 
 **Parameters:**
+
 - `pkgs` — Nixpkgs instance (used for IFD)
 - `ast` — AST to render
 
 **Returns:** Path to generated `.nix` file
 
 **Example:**
+
 ```nix
 configFile = lib.render pkgs ast;
 config = import configFile;
@@ -48,11 +52,13 @@ toAST :: a -> AST
 ```
 
 **Parameters:**
+
 - `value` — Nix value (int, string, list, attrset)
 
 **Returns:** AST node
 
 **Example:**
+
 ```nix
 ast = lib.toAST { x = 1; y = [1 2 3]; }
 # { tag = "Set"; recursive = false; bindings = [...]; }

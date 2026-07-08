@@ -8,8 +8,8 @@ List [Expr]
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type     | Description                 |
+| ---------- | -------- | --------------------------- |
 | `contents` | `[Expr]` | List of element expressions |
 
 ## Nix Source ↔ AST

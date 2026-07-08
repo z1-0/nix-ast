@@ -4,21 +4,21 @@ Functions for parsing, constructing, matching, and transforming Nix AST nodes.
 
 ## Overview
 
-| Function area | Description |
-|---------------|-------------|
-| **Parse / Render** | Convert between Nix source code and structured AST |
-| **Constructors** | Build AST nodes with runtime type validation |
-| **Pattern Matching** | Tag-based dispatch on node types |
-| **Traversal** | Walk, transform, and collect nodes in the tree |
+| Function area        | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| **Parse / Render**   | Convert between Nix source code and structured AST |
+| **Constructors**     | Build AST nodes with runtime type validation       |
+| **Pattern Matching** | Tag-based dispatch on node types                   |
+| **Traversal**        | Walk, transform, and collect nodes in the tree     |
 
 ## Pages
 
-| Page | Description |
-|------|-------------|
-| [Core Functions](./core-functions.md) | `parse`, `render`, `toAST` — convert Nix ↔ AST |
-| [syntax — Constructors & Predicates](./syntax.md) | `mk*` builders and `is*` tag checks for all node types |
-| [match — Pattern Matching](./match.md) | Type-safe tag dispatch with `match ast { ... }` |
-| [traversal — Tree Operations](./traversal.md) | `children`, `rebuild`, `transform`, `universe`, `contexts` |
+| Page                                              | Description                                                |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| [Core Functions](./core-functions.md)             | `parse`, `render`, `toAST` — convert Nix ↔ AST             |
+| [syntax — Constructors & Predicates](./syntax.md) | `mk*` builders and `is*` tag checks for all node types     |
+| [match — Pattern Matching](./match.md)            | Type-safe tag dispatch with `match ast { ... }`            |
+| [traversal — Tree Operations](./traversal.md)     | `children`, `rebuild`, `transform`, `universe`, `contexts` |
 
 ## Quick Example
 

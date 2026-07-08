@@ -8,8 +8,8 @@ Bool Bool
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type   | Description       |
+| ---------- | ------ | ----------------- |
 | `contents` | `Bool` | `True` or `False` |
 
 ## Nix Source ↔ AST

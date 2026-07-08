@@ -13,6 +13,7 @@ traversal.children :: Expr -> [Expr]
 ```
 
 **Example:**
+
 ```nix
 # For: { tag = "App"; func = f; arg = x; }
 traversal.children node  # => [f, x]
@@ -27,6 +28,7 @@ traversal.rebuild :: Expr -> [Expr] -> Expr
 ```
 
 **Example:**
+
 ```nix
 newNode = traversal.rebuild node [newFunc newArg]
 ```
@@ -40,6 +42,7 @@ traversal.descend :: (Expr -> Expr) -> Expr -> Expr
 ```
 
 **Example:**
+
 ```nix
 # Transform all direct children
 traversal.descend (n: n + 1) node
@@ -56,6 +59,7 @@ traversal.transform :: (Expr -> Expr) -> Expr -> Expr
 ```
 
 **Example:**
+
 ```nix
 # Replace all integers with their double
 doubleInts = traversal.transform (node:
@@ -75,6 +79,7 @@ traversal.rewrite :: (Expr -> Expr | null) -> Expr -> Expr
 ```
 
 **Example:**
+
 ```nix
 # Simplify constant folding
 simplify = traversal.rewrite (node:
@@ -94,6 +99,7 @@ traversal.para :: (Expr -> [a] -> a) -> Expr -> a
 ```
 
 **Example:**
+
 ```nix
 # Count all nodes
 countNodes = traversal.para (node: childCounts:
@@ -112,6 +118,7 @@ traversal.universe :: Expr -> [Expr]
 ```
 
 **Example:**
+
 ```nix
 allSymbols = builtins.filter syntax.isSym (traversal.universe ast);
 ```
@@ -125,6 +132,7 @@ traversal.holes :: Expr -> [(Expr, Expr -> Expr)]
 ```
 
 **Example:**
+
 ```nix
 # Get all positions where a child can be replaced
 holes = traversal.holes ast;
@@ -141,6 +149,7 @@ traversal.contexts :: Expr -> [(Expr, Expr -> Expr)]
 ```
 
 **Example:**
+
 ```nix
 # Get all subexpressions with their context
 contexts = traversal.contexts ast;

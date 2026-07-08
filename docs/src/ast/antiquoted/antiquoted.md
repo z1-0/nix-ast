@@ -10,8 +10,8 @@ Antiquoted Expr
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type   | Description                                         |
+| ---------- | ------ | --------------------------------------------------- |
 | `contents` | `Expr` | The embedded expression to evaluate and interpolate |
 
 ## Description
@@ -32,6 +32,7 @@ Antiquoted Expr
 ```
 
 ### Complex Antiquotation
+
 ```nix
 # Nix
 "${if cond then "yes" else "no"}"

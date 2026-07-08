@@ -8,10 +8,10 @@ App { func :: Expr, arg :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field  | Type   | Description                           |
+| ------ | ------ | ------------------------------------- |
 | `func` | `Expr` | The function expression being applied |
-| `arg` | `Expr` | The argument expression |
+| `arg`  | `Expr` | The argument expression               |
 
 ## Nix Source ↔ AST
 
@@ -28,6 +28,7 @@ f x
 ```
 
 ### Chained Application
+
 ```nix
 # Nix
 f x y

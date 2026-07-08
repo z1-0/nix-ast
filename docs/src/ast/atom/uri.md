@@ -8,8 +8,8 @@ Uri Text
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type   | Description    |
+| ---------- | ------ | -------------- |
 | `contents` | `Text` | The URI string |
 
 ## Nix Source ↔ AST

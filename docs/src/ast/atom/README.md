@@ -2,13 +2,13 @@
 
 ## Constructors
 
-| Constructor | Field | Type | Description |
-|-------------|-------|------|-------------|
-| `Bool` | `contents` | `Bool` | Boolean value (`true`/`false`) |
-| `Float` | `contents` | `Float` | Floating-point (not in Nix surface syntax) |
-| `Int` | `contents` | `Integer` | 64-bit integer |
-| `Null` | (none) | — | Null value |
-| `Uri` | `contents` | `Text` | URI literal |
+| Constructor | Field      | Type      | Description                                |
+| ----------- | ---------- | --------- | ------------------------------------------ |
+| `Bool`      | `contents` | `Bool`    | Boolean value (`true`/`false`)             |
+| `Float`     | `contents` | `Float`   | Floating-point (not in Nix surface syntax) |
+| `Int`       | `contents` | `Integer` | 64-bit integer                             |
+| `Null`      | (none)     | —         | Null value                                 |
+| `Uri`       | `contents` | `Text`    | URI literal                                |
 
 ## Description
 

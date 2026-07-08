@@ -8,14 +8,13 @@ EnvPath FilePath
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type       | Description                       |
+| ---------- | ---------- | --------------------------------- |
 | `contents` | `FilePath` | The path string (e.g., `nixpkgs`) |
 
 ## Description
 
 `EnvPath` represents paths written in angle brackets like `<nixpkgs>` or `<nixos>`. These are looked up in the Nix search path (`NIX_PATH` environment variable) and are distinct from literal file paths.
-
 
 ## Nix Source ↔ AST
 

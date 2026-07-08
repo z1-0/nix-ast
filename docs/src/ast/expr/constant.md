@@ -8,8 +8,8 @@ Constant Atom
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type   | Description                                    |
+| ---------- | ------ | ---------------------------------------------- |
 | `contents` | `Atom` | The atomic value (Int, Float, Bool, Null, Uri) |
 
 ## Description

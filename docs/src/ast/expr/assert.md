@@ -8,9 +8,9 @@ Assert { cond :: Expr, body :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cond` | `Expr` | Condition that must evaluate to `true` |
+| Field  | Type   | Description                                |
+| ------ | ------ | ------------------------------------------ |
+| `cond` | `Expr` | Condition that must evaluate to `true`     |
 | `body` | `Expr` | Expression to evaluate if assertion passes |
 
 ## Nix Source ↔ AST

@@ -8,11 +8,11 @@ Binary { op :: Text, left :: Expr, right :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `op` | `Text` | Operator symbol (e.g., `+`, `==`, `&&`) |
-| `left` | `Expr` | Left operand |
-| `right` | `Expr` | Right operand |
+| Field   | Type   | Description                             |
+| ------- | ------ | --------------------------------------- |
+| `op`    | `Text` | Operator symbol (e.g., `+`, `==`, `&&`) |
+| `left`  | `Expr` | Left operand                            |
+| `right` | `Expr` | Right operand                           |
 
 ## Supported Operators
 

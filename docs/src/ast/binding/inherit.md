@@ -8,14 +8,15 @@ Inherit { scope :: Maybe Expr, names :: [VarName] }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field   | Type         | Description                                                                        |
+| ------- | ------------ | ---------------------------------------------------------------------------------- |
 | `scope` | `Maybe Expr` | Optional scope expression (`Nothing` = current scope, `Just e` = inherit from `e`) |
-| `names` | `[VarName]` | List of variable names to inherit |
+| `names` | `[VarName]`  | List of variable names to inherit                                                  |
 
 ## Nix Source ↔ AST
 
 ### Without Scope (from current scope)
+
 ```nix
 # Nix
 inherit x y z;
@@ -29,6 +30,7 @@ inherit x y z;
 ```
 
 ### With Scope (from specific expression)
+
 ```nix
 # Nix
 inherit (pkgs) vim git;

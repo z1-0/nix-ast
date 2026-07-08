@@ -8,14 +8,15 @@ Indented { indent :: Int, parts :: [Antiquoted Text] }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `indent` | `Int` | Indentation level (spaces stripped from each line) |
-| `parts` | `[Antiquoted Text]` | List of string parts |
+| Field    | Type                | Description                                        |
+| -------- | ------------------- | -------------------------------------------------- |
+| `indent` | `Int`               | Indentation level (spaces stripped from each line) |
+| `parts`  | `[Antiquoted Text]` | List of string parts                               |
 
 ## Nix Source ↔ AST
 
 ### Simple Indented String
+
 ```nix
 # Nix
 ''
@@ -34,6 +35,7 @@ Indented { indent :: Int, parts :: [Antiquoted Text] }
 ```
 
 ### With Antiquotation
+
 ```nix
 # Nix
 ''
@@ -53,6 +55,7 @@ Indented { indent :: Int, parts :: [Antiquoted Text] }
 ```
 
 ### Escaped Newline
+
 ```nix
 # Nix
 ''

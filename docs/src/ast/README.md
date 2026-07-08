@@ -2,25 +2,20 @@
 
 Complete reference for every node type in the Nix AST, organized by type hierarchy (as defined in `Types.hs`).
 
-## Type Aliases
+## Node Types
 
-| Type                        | Description                                                  |
-| --------------------------- | ------------------------------------------------------------ |
-| [VarName](./var-name.md)    | Identifier name (`Text`)                                     |
-| [AttrPath](./attr-path.md)  | Non-empty list of `KeyName`                                  |
-| [Operators](./operators.md) | Binary (`==`, `+`, `//`, ...) and unary (`-`, `!`) operators |
-
-## Algebraic Types
-
-| Type                                 | Constructors                            | Role                                 |
-| ------------------------------------ | --------------------------------------- | ------------------------------------ |
-| [Expr](./expr/README.md)             | 18 constructors (Abs, App, Binary, ...) | The main expression tree             |
-| [Atom](./atom/README.md)             | Bool, Float, Int, Null, Uri             | Primitive constant values            |
-| [Binding](./binding/README.md)       | Inherit, NamedVar                       | Left-hand side of attribute bindings |
-| [KeyName](./key-name/README.md)      | StaticKey, DynamicKey                   | Attribute path components            |
-| [Params](./params/README.md)         | Param, ParamSet                         | Function parameter definitions       |
-| [String](./string/README.md)         | DoubleQuoted, Indented                  | String literal contents              |
-| [Antiquoted](./antiquoted/README.md) | Plain, Antiquoted, EscapedNewline       | String parts with interpolation      |
+| Type                                 | Description                                              |
+| ------------------------------------ | -------------------------------------------------------- |
+| [Expr](./expr/README.md)             | The main expression tree (Abs, App, Binary, ...)         |
+| [Atom](./atom/README.md)             | Primitive constant values (Bool, Float, Int, Null, Uri)  |
+| [VarName](./var-name.md)             | Identifier name                                          |
+| [AttrPath](./attr-path.md)           | Non-empty list of `KeyName` for attribute paths          |
+| [Binding](./binding/README.md)       | Left-hand side of attribute bindings (Inherit, NamedVar) |
+| [KeyName](./key-name/README.md)      | Attribute path components (StaticKey, DynamicKey)        |
+| [Operators](./operators.md)          | Binary and unary operators                               |
+| [Params](./params/README.md)         | Function parameter definitions (Param, ParamSet)         |
+| [String](./string/README.md)         | String literal contents (DoubleQuoted, Indented)         |
+| [Antiquoted](./antiquoted/README.md) | String parts with interpolation                          |
 
 ## Quick Start
 

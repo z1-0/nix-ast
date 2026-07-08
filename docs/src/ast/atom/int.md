@@ -8,8 +8,8 @@ Int Integer
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type      | Description                                         |
+| ---------- | --------- | --------------------------------------------------- |
 | `contents` | `Integer` | Arbitrary-precision integer (Nix uses 64-bit range) |
 
 ## Nix Source ↔ AST

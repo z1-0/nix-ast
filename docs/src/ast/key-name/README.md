@@ -2,10 +2,10 @@
 
 ## Constructors
 
-| Constructor | Fields | Description |
-|-------------|--------|-------------|
-| `DynamicKey` | `contents: Antiquoted String` | Dynamic/computed key |
-| `StaticKey` | `contents: VarName` | Static identifier key |
+| Constructor  | Fields                        | Description           |
+| ------------ | ----------------------------- | --------------------- |
+| `DynamicKey` | `contents: Antiquoted String` | Dynamic/computed key  |
+| `StaticKey`  | `contents: VarName`           | Static identifier key |
 
 ## Description
 

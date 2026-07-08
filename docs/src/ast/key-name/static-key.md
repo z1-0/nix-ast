@@ -8,8 +8,8 @@ StaticKey VarName
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type      | Description         |
+| ---------- | --------- | ------------------- |
 | `contents` | `VarName` | The identifier name |
 
 ## Description

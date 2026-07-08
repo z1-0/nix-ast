@@ -8,13 +8,14 @@ Sym VarName
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type      | Description       |
+| ---------- | --------- | ----------------- |
 | `contents` | `VarName` | The variable name |
 
 ## Description
 
 `Sym` represents a reference to a variable in scope. It is used for:
+
 - Function parameters
 - Let-bound variables
 - Inherited variables

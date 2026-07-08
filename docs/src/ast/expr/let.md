@@ -8,10 +8,10 @@ Let { bindings :: [Binding], body :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type        | Description                                      |
+| ---------- | ----------- | ------------------------------------------------ |
 | `bindings` | `[Binding]` | List of local bindings (`Inherit` or `NamedVar`) |
-| `body` | `Expr` | Body expression evaluated with bindings in scope |
+| `body`     | `Expr`      | Body expression evaluated with bindings in scope |
 
 ## Nix Source ↔ AST
 

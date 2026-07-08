@@ -8,14 +8,13 @@ LiteralPath FilePath
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type       | Description                                        |
+| ---------- | ---------- | -------------------------------------------------- |
 | `contents` | `FilePath` | The path string (e.g., `./foo.nix`, `/etc/config`) |
 
 ## Description
 
 `LiteralPath` represents paths written without angle brackets — relative paths like `./foo.nix`, `../bar.nix`, or absolute paths like `/etc/nixos/configuration.nix`. These are resolved relative to the current file or as absolute paths, distinct from search-path paths.
-
 
 ## Nix Source ↔ AST
 

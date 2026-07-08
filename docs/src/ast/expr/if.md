@@ -8,11 +8,11 @@ If { cond :: Expr, thenExpr :: Expr, elseExpr :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `cond` | `Expr` | Condition expression (must evaluate to boolean) |
-| `thenExpr` | `Expr` | Expression when condition is `true` |
-| `elseExpr` | `Expr` | Expression when condition is `false` |
+| Field      | Type   | Description                                     |
+| ---------- | ------ | ----------------------------------------------- |
+| `cond`     | `Expr` | Condition expression (must evaluate to boolean) |
+| `thenExpr` | `Expr` | Expression when condition is `true`             |
+| `elseExpr` | `Expr` | Expression when condition is `false`            |
 
 ## Nix Source ↔ AST
 

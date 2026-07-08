@@ -8,8 +8,8 @@ SynHole VarName
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type      | Description              |
+| ---------- | --------- | ------------------------ |
 | `contents` | `VarName` | The hole identifier/name |
 
 ## Description

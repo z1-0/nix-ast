@@ -10,8 +10,8 @@ Param VarName
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type      | Description        |
+| ---------- | --------- | ------------------ |
 | `contents` | `VarName` | The parameter name |
 
 ## Description

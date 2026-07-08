@@ -8,10 +8,10 @@ With { namespace :: Expr, body :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `namespace` | `Expr` | The set expression whose attributes are brought into scope |
-| `body` | `Expr` | Body expression evaluated with namespace attributes in scope |
+| Field       | Type   | Description                                                  |
+| ----------- | ------ | ------------------------------------------------------------ |
+| `namespace` | `Expr` | The set expression whose attributes are brought into scope   |
+| `body`      | `Expr` | Body expression evaluated with namespace attributes in scope |
 
 ## Description
 

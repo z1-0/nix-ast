@@ -8,15 +8,16 @@ Select { defaultValue :: Maybe Expr, expr :: Expr, selectPath :: AttrPath }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field          | Type         | Description                                                                 |
+| -------------- | ------------ | --------------------------------------------------------------------------- |
 | `defaultValue` | `Maybe Expr` | Default value if attribute not found (`Nothing` = no default, throws error) |
-| `expr` | `Expr` | The set expression to select from |
-| `selectPath` | `AttrPath` | The attribute path to select |
+| `expr`         | `Expr`       | The set expression to select from                                           |
+| `selectPath`   | `AttrPath`   | The attribute path to select                                                |
 
 ## Nix Source ↔ AST
 
 ### Without Default (throws if missing)
+
 ```nix
 # Nix
 set.attr
@@ -31,6 +32,7 @@ set.attr
 ```
 
 ### With Default (`or`)
+
 ```nix
 # Nix
 set.attr or "default"
@@ -45,6 +47,7 @@ set.attr or "default"
 ```
 
 ### Nested Path
+
 ```nix
 # Nix
 set.a.b.c or 0

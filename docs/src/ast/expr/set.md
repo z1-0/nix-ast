@@ -8,14 +8,15 @@ Set { recursive :: Bool, bindings :: [Binding] }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `recursive` | `Bool` | `true` for `rec { ... }`, `false` for `{ ... }` |
-| `bindings` | `[Binding]` | List of bindings (`Inherit` or `NamedVar`) |
+| Field       | Type        | Description                                     |
+| ----------- | ----------- | ----------------------------------------------- |
+| `recursive` | `Bool`      | `true` for `rec { ... }`, `false` for `{ ... }` |
+| `bindings`  | `[Binding]` | List of bindings (`Inherit` or `NamedVar`)      |
 
 ## Nix Source ↔ AST
 
 ### Non-Recursive Set
+
 ```nix
 # Nix
 { x = 1; y = 2; }
@@ -40,6 +41,7 @@ Set { recursive :: Bool, bindings :: [Binding] }
 ```
 
 ### Recursive Set
+
 ```nix
 # Nix
 rec { x = 1; y = x + 1; }
@@ -69,6 +71,7 @@ rec { x = 1; y = x + 1; }
 ```
 
 ### With Inherit
+
 ```nix
 # Nix
 { inherit x y; z = 3; }

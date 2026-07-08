@@ -8,10 +8,10 @@ HasAttr { expr :: Expr, attrPath :: AttrPath }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `expr` | `Expr` | The expression to check (typically a set) |
-| `attrPath` | `AttrPath` | The attribute path to check for |
+| Field      | Type       | Description                               |
+| ---------- | ---------- | ----------------------------------------- |
+| `expr`     | `Expr`     | The expression to check (typically a set) |
+| `attrPath` | `AttrPath` | The attribute path to check for           |
 
 ## Description
 

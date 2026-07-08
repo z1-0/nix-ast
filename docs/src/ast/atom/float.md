@@ -8,8 +8,8 @@ Float Float
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type    | Description                            |
+| ---------- | ------- | -------------------------------------- |
 | `contents` | `Float` | Double-precision floating-point number |
 
 ## Note

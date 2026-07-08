@@ -2,23 +2,23 @@
 
 ## Binary Operators
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `==` | Equality | `x == y` |
-| `!=` | Inequality | `x != y` |
-| `<` | Less than | `x < y` |
-| `<=` | Less than or equal | `x <= y` |
-| `>` | Greater than | `x > y` |
-| `>=` | Greater than or equal | `x >= y` |
-| `&&` | Logical AND | `x && y` |
-| `\|\|` | Logical OR | `x \|\| y` |
-| `->` | Implication | `x -> y` |
-| `//` | Set update/merge | `x // y` |
-| `+` | Addition | `x + y` |
-| `-` | Subtraction | `x - y` |
-| `*` | Multiplication | `x * y` |
-| `/` | Division | `x / y` |
-| `++` | List/string concatenation | `x ++ y` |
+| Operator | Description               | Example    |
+| -------- | ------------------------- | ---------- |
+| `==`     | Equality                  | `x == y`   |
+| `!=`     | Inequality                | `x != y`   |
+| `<`      | Less than                 | `x < y`    |
+| `<=`     | Less than or equal        | `x <= y`   |
+| `>`      | Greater than              | `x > y`    |
+| `>=`     | Greater than or equal     | `x >= y`   |
+| `&&`     | Logical AND               | `x && y`   |
+| `\|\|`   | Logical OR                | `x \|\| y` |
+| `->`     | Implication               | `x -> y`   |
+| `//`     | Set update/merge          | `x // y`   |
+| `+`      | Addition                  | `x + y`    |
+| `-`      | Subtraction               | `x - y`    |
+| `*`      | Multiplication            | `x * y`    |
+| `/`      | Division                  | `x / y`    |
+| `++`     | List/string concatenation | `x ++ y`   |
 
 ### Example
 
@@ -37,10 +37,10 @@ x + y
 
 ## Unary Operators
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `-` | Numeric negation | `-x` |
-| `!` | Logical NOT | `!x` |
+| Operator | Description      | Example |
+| -------- | ---------------- | ------- |
+| `-`      | Numeric negation | `-x`    |
+| `!`      | Logical NOT      | `!x`    |
 
 ### Example
 
@@ -58,11 +58,11 @@ x + y
 
 ## Special Operators
 
-| Operation | nix-ast node |
-|-----------|--------------|
-| Function application | `App` |
-| Attribute selection | `Select` |
-| Has attribute | `HasAttr` |
+| Operation            | nix-ast node |
+| -------------------- | ------------ |
+| Function application | `App`        |
+| Attribute selection  | `Select`     |
+| Has attribute        | `HasAttr`    |
 
 ## Nix Library Access
 

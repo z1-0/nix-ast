@@ -8,14 +8,15 @@ Abs { params :: Params, body :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field    | Type     | Description                                        |
+| -------- | -------- | -------------------------------------------------- |
 | `params` | `Params` | Function parameters (single `Param` or `ParamSet`) |
-| `body` | `Expr` | Function body expression |
+| `body`   | `Expr`   | Function body expression                           |
 
 ## Nix Source ↔ AST
 
 ### Single Parameter
+
 ```nix
 # Nix
 x: x + 1
@@ -34,6 +35,7 @@ x: x + 1
 ```
 
 ### Parameter Set
+
 ```nix
 # Nix
 { x, y ? 1 }: x + y
@@ -60,6 +62,7 @@ x: x + 1
 ```
 
 ### Variadic Parameter Set
+
 ```nix
 # Nix
 { x, ... }: x

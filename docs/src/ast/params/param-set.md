@@ -10,11 +10,11 @@ ParamSet { paramSetName :: Maybe VarName, variadic :: Bool, params :: ParamSet }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `paramSetName` | `Maybe VarName` | Name for `@`-pattern (e.g., `args @ { x, y }`) |
-| `variadic` | `Bool` | `true` if `...` is present (allows extra arguments) |
-| `params` | `ParamSet` | The actual parameter set (map of name → optional default) |
+| Field          | Type            | Description                                               |
+| -------------- | --------------- | --------------------------------------------------------- |
+| `paramSetName` | `Maybe VarName` | Name for `@`-pattern (e.g., `args @ { x, y }`)            |
+| `variadic`     | `Bool`          | `true` if `...` is present (allows extra arguments)       |
+| `params`       | `ParamSet`      | The actual parameter set (map of name → optional default) |
 
 ## Description
 
@@ -31,6 +31,7 @@ type ParamSet = [(Text, Maybe Expr)]
 ## Nix Source ↔ AST
 
 ### Fixed Parameters
+
 ```nix
 # Nix
 { x, y }: x + y
@@ -52,6 +53,7 @@ type ParamSet = [(Text, Maybe Expr)]
 ```
 
 ### With Defaults
+
 ```nix
 # Nix
 { x ? 1, y ? "hello" }: x
@@ -69,6 +71,7 @@ type ParamSet = [(Text, Maybe Expr)]
 ```
 
 ### Variadic (`...`)
+
 ```nix
 # Nix
 { x, y, ... }: x + y
@@ -86,6 +89,7 @@ type ParamSet = [(Text, Maybe Expr)]
 ```
 
 ### With `@`-Pattern
+
 ```nix
 # Nix
 args @ { x, y }: args.x + args.y

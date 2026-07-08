@@ -10,9 +10,9 @@ Plain v
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `contents` | `v` | The literal value — `Text` in string parts, `String` node in `DynamicKey` |
+| Field      | Type | Description                                                               |
+| ---------- | ---- | ------------------------------------------------------------------------- |
+| `contents` | `v`  | The literal value — `Text` in string parts, `String` node in `DynamicKey` |
 
 ## Description
 

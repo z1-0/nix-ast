@@ -2,10 +2,10 @@
 
 ## Constructors
 
-| Constructor | Fields | Description |
-|-------------|--------|-------------|
-| `ParamSet` | `paramSetName: Maybe VarName`, `variadic: Bool`, `params: ParamSet` | Parameter set `{ x, y ? 1, ... }` |
-| `Param` | `contents: VarName` | Single parameter `x: ...` |
+| Constructor | Fields                                                              | Description                       |
+| ----------- | ------------------------------------------------------------------- | --------------------------------- |
+| `ParamSet`  | `paramSetName: Maybe VarName`, `variadic: Bool`, `params: ParamSet` | Parameter set `{ x, y ? 1, ... }` |
+| `Param`     | `contents: VarName`                                                 | Single parameter `x: ...`         |
 
 ## Description
 

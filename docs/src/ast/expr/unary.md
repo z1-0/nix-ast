@@ -8,10 +8,10 @@ Unary { op :: Text, arg :: Expr }
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `op` | `Text` | Operator symbol (`-` or `!`) |
-| `arg` | `Expr` | Operand expression |
+| Field | Type   | Description                  |
+| ----- | ------ | ---------------------------- |
+| `op`  | `Text` | Operator symbol (`-` or `!`) |
+| `arg` | `Expr` | Operand expression           |
 
 ## Supported Operators
 

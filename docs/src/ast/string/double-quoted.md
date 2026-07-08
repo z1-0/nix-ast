@@ -8,13 +8,14 @@ DoubleQuoted [Antiquoted Text]
 
 ## Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field      | Type                | Description          |
+| ---------- | ------------------- | -------------------- |
 | `contents` | `[Antiquoted Text]` | List of string parts |
 
 ## Nix Source ↔ AST
 
 ### Simple String
+
 ```nix
 # Nix
 "hello"
@@ -29,6 +30,7 @@ DoubleQuoted [Antiquoted Text]
 ```
 
 ### With Antiquotation
+
 ```nix
 # Nix
 "hello ${name}"
@@ -46,6 +48,7 @@ DoubleQuoted [Antiquoted Text]
 ## Expression Wrapper
 
 The expression-level node is `Str` wrapping this:
+
 ```json
 {
   "tag": "Str",

@@ -1,30 +1,32 @@
 # VarName
 
-Type alias for identifiers used throughout the AST.
-
-```
-type VarName = Text
-```
-
 ## Description
 
 `VarName` represents identifiers in Nix code — variable names, attribute names, parameter names, etc.
 
-## Usage
+## Nix Source ↔ AST
 
-- Used in `Sym` (variable references)
-- Used in `Param` (function parameters)
-- Used in `StaticKey` (static attribute keys)
-- Used in `Inherit` binding names
-- Used in `ParamSet` parameter names
+```nix
+# Nix
+myVariable
 
-## JSON Representation
-
-In the JSON AST, `VarName` appears as a plain string:
-
-```json
+# AST (inside Sym)
 { "tag": "Sym", "contents": "myVariable" }
 ```
+
+Used as the `contents` field of:
+
+- `Sym` — variable references
+- `Param` — function parameters
+- `StaticKey` — static attribute keys
+- `Inherit` — inherited names
+- `ParamSet` — parameter set parameter names
+
+## Related
+
+- [Expr](../expr/README.md)
+- [KeyName](../key-name/README.md)
+- [Binding](../binding/README.md)
 
 ## Nix Library Access
 

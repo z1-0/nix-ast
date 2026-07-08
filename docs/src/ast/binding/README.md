@@ -2,10 +2,10 @@
 
 ## Constructors
 
-| Constructor | Fields | Description |
-|-------------|--------|-------------|
-| `Inherit` | `scope: Maybe Expr`, `names: [VarName]` | Inherit variables from scope |
-| `NamedVar` | `attrPath: AttrPath`, `value: Expr` | Named variable binding |
+| Constructor | Fields                                  | Description                  |
+| ----------- | --------------------------------------- | ---------------------------- |
+| `Inherit`   | `scope: Maybe Expr`, `names: [VarName]` | Inherit variables from scope |
+| `NamedVar`  | `attrPath: AttrPath`, `value: Expr`     | Named variable binding       |
 
 ## Description
 

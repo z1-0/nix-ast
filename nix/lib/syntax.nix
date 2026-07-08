@@ -19,12 +19,12 @@ let
   mkNullAtom = mkNode "Null" { };
   mkUriAtom = val: mkNode "Uri" { contents = assertType "mkUri" "value" t.textVal val; };
 
-  mkDoubleQuotedNode =
+  mkDoubleQuoted =
     parts:
     mkNode "DoubleQuoted" {
       contents = assertType "mkDoubleQuoted" "parts" (t.listOf t.AntiquotedText) parts;
     };
-  mkIndentedNode =
+  mkIndented =
     indent: parts:
     mkNode "Indented" {
       indent = assertType "mkIndented" "indent" t.intVal indent;
@@ -175,8 +175,8 @@ rec {
     };
 
   # Helpers wrapping string nodes into Expr directly
-  mkDoubleQuoted = parts: mkStr (mkDoubleQuotedNode parts);
-  mkIndented = indent: parts: mkStr (mkIndentedNode indent parts);
+  mkStrDoubleQuoted = parts: mkStr (mkDoubleQuoted parts);
+  mkStrIndented = indent: parts: mkStr (mkIndented indent parts);
 
   mkPlain =
     content:

@@ -14,8 +14,8 @@ throwTestFailures {
     testToAST_int = test (toAST 42) (syntax.mkInt 42);
     testToAST_float = test (toAST 3.14) (syntax.mkFloat 3.14);
     testToAST_null = test (toAST null) syntax.mkNull;
-    testToAST_string = test (toAST "hi") (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]);
-    testToAST_list = test (toAST [ 1 "a" ]) (syntax.mkList [ (syntax.mkInt 1) (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ]) ]);
+    testToAST_string = test (toAST "hi") (syntax.mkStrDoubleQuoted [ (syntax.mkPlain "hi") ]);
+    testToAST_list = test (toAST [ 1 "a" ]) (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStrDoubleQuoted [ (syntax.mkPlain "a") ]) ]);
     testToAST_function = assertThrows (toAST (x: x));
     testToAST_attrset = test (toAST { x = 1; }) (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ]);
 

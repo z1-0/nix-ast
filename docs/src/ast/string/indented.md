@@ -90,5 +90,5 @@ Indented { indent :: Int, parts :: [Antiquoted Text] }
 ## Nix Library Access
 
 ```nix
-syntax.mkIndented 2 [syntax.mkPlain "hello\nworld"]
+syntax.mkStrIndented 2 [syntax.mkPlain "hello\nworld"]
 ```

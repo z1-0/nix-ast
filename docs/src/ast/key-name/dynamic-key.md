@@ -69,5 +69,5 @@ let name = "foo"; in { ${name} = 1; }
 
 ```nix
 syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
-# Plain + String variant (rare): `{ tag = "Plain"; contents = syntax.mkDoubleQuoted [...]; }`
+# Plain + String variant (rare): syntax.mkDynamicKey (syntax.mkPlain (syntax.mkDoubleQuoted [...]))
 ```

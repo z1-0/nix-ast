@@ -62,6 +62,6 @@ The expression-level node is `Str` wrapping this:
 ## Nix Library Access
 
 ```nix
-syntax.mkDoubleQuoted [syntax.mkPlain "hello"]
-syntax.mkDoubleQuoted [syntax.mkPlain "hello ", syntax.mkAntiquoted (syntax.mkSym "name")]
+syntax.mkStrDoubleQuoted [syntax.mkPlain "hello"]
+syntax.mkStrDoubleQuoted [syntax.mkPlain "hello ", syntax.mkAntiquoted (syntax.mkSym "name")]
 ```

@@ -52,5 +52,5 @@ When used inside `DynamicKey` (as `Antiquoted String`), `Plain` wraps a `String`
 
 ```nix
 syntax.mkPlain "hello "       # text content (string parts)
-# For DynamicKey Plain + String: use `{ tag = "Plain"; contents = ...; }`
+syntax.mkPlain (syntax.mkDoubleQuoted [...])  # String node content (DynamicKey)
 ```

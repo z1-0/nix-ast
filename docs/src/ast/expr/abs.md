@@ -81,5 +81,5 @@ x: x + 1
 
 ```nix
 syntax.mkAbs (syntax.mkParam "x") (syntax.mkBinary "+" (syntax.mkSym "x") (syntax.mkInt 1))
-syntax.mkAbs (syntax.mkParamSet null [["x" null] ["y" null]] false) body
+syntax.mkAbs (syntax.mkParamSet null false [["x" null] ["y" null]]) body
 ```

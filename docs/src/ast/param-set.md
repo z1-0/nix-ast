@@ -31,5 +31,5 @@ type ParamSet = [(Text, Maybe Expr)]
 ## Nix Library Access
 
 ```nix
-syntax.mkParamSet null [["x" null] ["y" (syntax.mkInt 1)]] false
+syntax.mkParamSet null false [["x" null] ["y" (syntax.mkInt 1)]]
 ```

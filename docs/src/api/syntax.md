@@ -60,7 +60,7 @@ syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkSym "name"))
 
 ```nix
 syntax.mkParam "x"
-syntax.mkParamSet null [ [ "x" null ] [ "y" (syntax.mkInt 1) ] ] false
+syntax.mkParamSet null false [ [ "x" null ] [ "y" (syntax.mkInt 1) ] ]
 ```
 
 ### Antiquoted Text

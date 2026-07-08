@@ -167,11 +167,11 @@ rec {
   mkParam = name: mkNode "Param" { contents = assertType "mkParam" "name" t.textVal name; };
 
   mkParamSet =
-    paramSetName: params: variadic:
+    paramSetName: variadic: params:
     mkNode "ParamSet" {
       paramSetName = assertType "mkParamSet" "paramSetName" (t.maybe t.textVal) paramSetName;
-      params = assertType "mkParamSet" "params" (t.listOf t.anyVal) params; # list of pairs [name, default]
       variadic = assertType "mkParamSet" "variadic" t.boolVal variadic;
+      params = assertType "mkParamSet" "params" (t.listOf t.anyVal) params; # list of pairs [name, default]
     };
 
   # Helpers wrapping string nodes into Expr directly

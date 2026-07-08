@@ -104,8 +104,8 @@ args @ { x, y }: args.x + args.y
 ## Nix Library Access
 
 ```nix
-syntax.mkParamSet null [["x" null] ["y" null]] false
-syntax.mkParamSet null [["x" (syntax.mkInt 1)]] false
-syntax.mkParamSet null [["x" null] ["y" null]] true
-syntax.mkParamSet "args" [["x" null] ["y" null]] false
+syntax.mkParamSet null false [["x" null] ["y" null]]
+syntax.mkParamSet null false [["x" (syntax.mkInt 1)]]
+syntax.mkParamSet null true [["x" null] ["y" null]]
+syntax.mkParamSet "args" false [["x" null] ["y" null]]
 ```

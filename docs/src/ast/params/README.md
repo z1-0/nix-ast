@@ -27,7 +27,7 @@ The `ParamSet` constructor contains an inner `ParamSet` type which is a map of p
 
 ```nix
 syntax.mkParam "x"
-syntax.mkParamSet null [["x" null] ["y" null]] false
-syntax.mkParamSet null [["x" (syntax.mkInt 1)]] false
-syntax.mkParamSet null [["x" null] ["y" null]] true
+syntax.mkParamSet null false [["x" null] ["y" null]]
+syntax.mkParamSet null false [["x" (syntax.mkInt 1)]]
+syntax.mkParamSet null true [["x" null] ["y" null]]
 ```

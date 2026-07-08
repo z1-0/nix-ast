@@ -70,6 +70,6 @@ set.a.b.c or 0
 ## Nix Library Access
 
 ```nix
-syntax.mkSelect (syntax.mkSym "set") [syntax.mkStaticKey "attr"] null
-syntax.mkSelect (syntax.mkSym "set") [syntax.mkStaticKey "attr"] (syntax.mkStr (syntax.mkDoubleQuoted [syntax.mkPlain "default"]))
+syntax.mkSelect null (syntax.mkSym "set") [syntax.mkStaticKey "attr"]
+syntax.mkSelect (syntax.mkStr (syntax.mkDoubleQuoted [syntax.mkPlain "default"])) (syntax.mkSym "set") [syntax.mkStaticKey "attr"]
 ```

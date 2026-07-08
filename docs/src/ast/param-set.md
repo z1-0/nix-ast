@@ -3,7 +3,7 @@
 Type alias for parameter sets, mapping parameter names to optional default expressions.
 
 ```
-type ParamSet = Map Text (Maybe Expr)
+type ParamSet = [(Text, Maybe Expr)]
 ```
 
 ## Description

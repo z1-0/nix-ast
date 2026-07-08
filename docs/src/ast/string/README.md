@@ -33,6 +33,6 @@ See [Antiquoted](../antiquoted/README.md) for:
 ## Nix Library Access
 
 ```nix
-syntax.mkStrDoubleQuoted [syntax.mkPlain "hello"]
-syntax.mkStrIndented 2 [syntax.mkPlain "hello\nworld"]
+syntax.mkStr (syntax.mkDoubleQuoted [syntax.mkPlain "hello"])
+syntax.mkStr (syntax.mkIndented 2 [syntax.mkPlain "hello\nworld"])
 ```

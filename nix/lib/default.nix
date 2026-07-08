@@ -52,7 +52,7 @@ in
         else if isInt v then syntax.mkInt v
         else if isFloat v then syntax.mkFloat v
         else if isNull v then syntax.mkNull
-        else if isString v then syntax.mkStrDoubleQuoted [ (syntax.mkPlain v) ]
+        else if isString v then syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain v) ])
         else if isPath v then syntax.mkLiteralPath (toString v)
         else if isList v then syntax.mkList (map go v)
         else if isFunction v then throw "toAST: cannot convert function to AST"

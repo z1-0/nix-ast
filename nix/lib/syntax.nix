@@ -19,6 +19,8 @@ let
   mkNullAtom = mkNode "Null" { };
   mkUriAtom = val: mkNode "Uri" { contents = assertType "mkUri" "value" t.textVal val; };
 
+in
+rec {
   mkDoubleQuoted =
     parts:
     mkNode "DoubleQuoted" {
@@ -30,8 +32,6 @@ let
       indent = assertType "mkIndented" "indent" t.intVal indent;
       parts = assertType "mkIndented" "parts" (t.listOf t.AntiquotedText) parts;
     };
-in
-rec {
   inherit hasTag;
 
   getExprKind =
@@ -173,10 +173,6 @@ rec {
       variadic = assertType "mkParamSet" "variadic" t.boolVal variadic;
       params = assertType "mkParamSet" "params" (t.listOf t.anyVal) params; # list of pairs [name, default]
     };
-
-  # Helpers wrapping string nodes into Expr directly
-  mkStrDoubleQuoted = parts: mkStr (mkDoubleQuoted parts);
-  mkStrIndented = indent: parts: mkStr (mkIndented indent parts);
 
   mkPlain =
     content:

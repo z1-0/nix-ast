@@ -17,8 +17,8 @@ syntax.mkUri "https://example.com"
 ### Strings
 
 ```nix
-syntax.mkStrDoubleQuoted [ syntax.mkPlain "hello" ]
-syntax.mkStrIndented 2 [ syntax.mkPlain "world" ]
+syntax.mkStr (syntax.mkDoubleQuoted [ syntax.mkPlain "hello" ])
+syntax.mkStr (syntax.mkIndented 2 [ syntax.mkPlain "world" ])
 ```
 
 ### Expressions

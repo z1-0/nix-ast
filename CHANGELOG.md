@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/z1-0/nix-ast/compare/v0.4.0...v0.5.0) (2026-07-08)
+
+
+### Features
+
+* **cli:** reword help descriptions ([ea051c9](https://github.com/z1-0/nix-ast/commit/ea051c975a527c6391981e4720e353c3108c5f5b))
+* drop types from public API, annotate exports ([6f982bd](https://github.com/z1-0/nix-ast/commit/6f982bda1a7dfffde7f8c02a5193e4a47ea420e3))
+
+
+### Bug Fixes
+
+* add Abs params to children/rebuild; extract traversal helpers ([6bd7ca4](https://github.com/z1-0/nix-ast/commit/6bd7ca4135ecc86d0589d08fe9e45e2f28fee416))
+* **docs:** correct ParamSet type annotation and mkSelect argument order ([4e5e4ab](https://github.com/z1-0/nix-ast/commit/4e5e4aba44cdcfa1ecc38a122a3471f20b346542))
+* **syntax:** align mkParamSet argument order with Haskell ([13bbfd3](https://github.com/z1-0/nix-ast/commit/13bbfd31f250ec2b055d34c757dab64d2c51337f))
+* **syntax:** make DynamicKey use Antiquoted instead of DoubleQuoted ([fd5d52d](https://github.com/z1-0/nix-ast/commit/fd5d52dc074b871e7b71d7b3108ed78ae27abe9e))
+* **traversal:** extract DynamicKey expressions in children/rebuild ([d8138cb](https://github.com/z1-0/nix-ast/commit/d8138cb0d5f64aef0e20adfc7a0db451d7dd5934))
+
 ## [0.4.0](https://github.com/z1-0/nix-ast/compare/v0.3.1...v0.4.0) (2026-07-03)
 
 

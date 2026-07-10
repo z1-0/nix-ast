@@ -26,3 +26,4 @@ dist-*
 docs/book
 result
 result-*
+.agents/

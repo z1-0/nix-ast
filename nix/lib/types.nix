@@ -68,17 +68,8 @@ let
     ];
   };
 
-  AntiquotedText = {
-    name = "Antiquoted Text";
-    check = isNodeOf [
-      "Plain"
-      "Antiquoted"
-      "EscapedNewline"
-    ];
-  };
-
-  AntiquotedString = {
-    name = "Antiquoted String";
+  Antiquoted = {
+    name = "Antiquoted";
     check = isNodeOf [
       "Plain"
       "Antiquoted"
@@ -135,8 +126,7 @@ in
     KeyName
     Params
     String
-    AntiquotedText
-    AntiquotedString
+    Antiquoted
     ;
   inherit
     listOf

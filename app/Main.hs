@@ -1,6 +1,6 @@
 module Main (main) where
 
-import NixAST.CLI (Command (..), opts, runParse, runRender)
+import NixAST.CLI (Command (..), opts, runEval, runEvalBatch, runParse, runRender)
 import Options.Applicative (execParser)
 import System.IO (hSetEncoding, stderr, stdin, stdout, utf8)
 
@@ -12,3 +12,5 @@ main = do
     execParser opts >>= \case
         Parse input -> runParse input
         Render input -> runRender input
+        Eval input -> runEval input
+        EvalBatch input -> runEvalBatch input

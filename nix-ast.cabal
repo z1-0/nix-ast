@@ -30,6 +30,7 @@ common shared
     , base        >=4.12
     , bytestring  >=0.11
     , text        >=2.0
+    , time        >=1.9
 
 common dep
   build-depends:
@@ -43,6 +44,7 @@ library
   exposed-modules:
     NixAST
     NixAST.Convert
+    NixAST.Eval
     NixAST.Input
     NixAST.Types
 
@@ -58,6 +60,7 @@ executable nix-ast
   other-modules:  NixAST.CLI
   build-depends:
     , nix-ast
+    , aeson       >=2.0
     , optparse-applicative  >=0.18
 
 test-suite tests

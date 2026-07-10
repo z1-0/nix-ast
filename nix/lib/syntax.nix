@@ -24,13 +24,13 @@ rec {
   mkDoubleQuoted =
     parts:
     mkNode "DoubleQuoted" {
-      contents = assertType "mkDoubleQuoted" "parts" (t.listOf t.AntiquotedText) parts;
+      contents = assertType "mkDoubleQuoted" "parts" (t.listOf t.Antiquoted) parts;
     };
   mkIndented =
     indent: parts:
     mkNode "Indented" {
       indent = assertType "mkIndented" "indent" t.intVal indent;
-      parts = assertType "mkIndented" "parts" (t.listOf t.AntiquotedText) parts;
+      parts = assertType "mkIndented" "parts" (t.listOf t.Antiquoted) parts;
     };
   inherit hasTag;
 
@@ -158,7 +158,7 @@ rec {
   mkDynamicKey =
     content:
     mkNode "DynamicKey" {
-      contents = assertType "mkDynamicKey" "content" t.AntiquotedString content;
+      contents = assertType "mkDynamicKey" "content" t.Antiquoted content;
     };
 
   mkStaticKey =

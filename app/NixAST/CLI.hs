@@ -3,13 +3,17 @@ module NixAST.CLI (
     opts,
     runParse,
     runRender,
+    runEval,
+    runEvalBatch,
 ) where
 
+import Data.Aeson (eitherDecode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
+import NixAST.Eval (evalAST, evalASTs)
 import NixAST.Input (Input)
 import NixAST.Input qualified as Input
 import Options.Applicative
@@ -21,6 +25,8 @@ import System.IO (stderr)
 data Command
     = Parse Input
     | Render Input
+    | Eval Input
+    | EvalBatch Input
 
 parseInfo :: ParserInfo Command
 parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to AST")
@@ -28,11 +34,19 @@ parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to AST")
 renderInfo :: ParserInfo Command
 renderInfo = info (Render <$> renderOpt) (progDesc "Generate Nix expression from AST")
 
+evalInfo :: ParserInfo Command
+evalInfo = info (Eval <$> renderOpt) (progDesc "Evaluate an AST and output JSON result")
+
+evalBatchInfo :: ParserInfo Command
+evalBatchInfo = info (EvalBatch <$> renderOpt) (progDesc "Evaluate ASTs from a JSON array and output JSON array result")
+
 parseCommand :: Parser Command
 parseCommand =
     hsubparser
         ( command "parse" parseInfo
             <> command "render" renderInfo
+            <> command "eval" evalInfo
+            <> command "eval-batch" evalBatchInfo
         )
 
 parseOpt :: Parser Input
@@ -97,6 +111,28 @@ runRender input = do
     case jsonToNix bs of
         Left err -> die err
         Right nix -> TIO.putStrLn nix
+
+runEval :: Input -> IO ()
+runEval input = do
+    bs <- Input.readBytes input
+    case eitherDecode @Expr bs of
+        Left err -> die (pack err)
+        Right expr -> do
+            result <- evalAST expr
+            case result of
+                Left err -> die err
+                Right json -> BL.putStr (json <> "\n")
+
+runEvalBatch :: Input -> IO ()
+runEvalBatch input = do
+    bs <- Input.readBytes input
+    case eitherDecode @[Expr] bs of
+        Left err -> die (pack err)
+        Right exprs -> do
+            result <- evalASTs exprs
+            case result of
+                Left err -> die err
+                Right json -> BL.putStr (json <> "\n")
 
 die :: Text -> IO a
 die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure

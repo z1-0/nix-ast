@@ -58,6 +58,7 @@
             ghcid
             hlint
             hpkgs.cabal-fmt
+            hpkgs.haskell-language-server
           ];
         };
       }

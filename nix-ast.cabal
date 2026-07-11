@@ -63,6 +63,7 @@ executable nix-ast
   build-depends:
     , nix-ast
     , aeson       >=2.0
+    , async       >=2.2
     , optparse-applicative  >=0.18
 
 test-suite tests

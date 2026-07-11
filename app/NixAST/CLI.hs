@@ -9,6 +9,9 @@ module NixAST.CLI (
     runRenderBatch,
 ) where
 
+import Control.Concurrent (newQSem, signalQSem, waitQSem)
+import Control.Concurrent.Async (mapConcurrently)
+import Control.Exception (bracket_)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack, unpack)
@@ -152,7 +155,8 @@ runParseBatch input = do
     case eitherDecode @[Text] bs of
         Left err -> die (pack err)
         Right paths -> do
-            srcs <- mapM TIO.readFile (map unpack paths)
+            sem <- newQSem 50
+            srcs <- mapConcurrently (bracket_ (waitQSem sem) (signalQSem sem) . TIO.readFile . unpack) paths
             case parseBatch srcs of
                 Left err -> die err
                 Right json -> BL.putStr (json <> "\n")

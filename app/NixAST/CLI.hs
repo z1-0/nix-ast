@@ -5,11 +5,13 @@ module NixAST.CLI (
     runRender,
     runEval,
     runEvalBatch,
+    runParseBatch,
+    runRenderBatch,
 ) where
 
-import Data.Aeson (eitherDecode)
+import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
-import Data.Text (Text, pack)
+import Data.Text (Text, pack, unpack)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
@@ -23,10 +25,12 @@ import System.Exit (exitFailure)
 import System.IO (stderr)
 
 data Command
-    = Parse Input
-    | Render Input
-    | Eval Input
+    = Eval Input
     | EvalBatch Input
+    | Parse Input
+    | ParseBatch Input
+    | Render Input
+    | RenderBatch Input
 
 parseInfo :: ParserInfo Command
 parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to AST")
@@ -40,6 +44,12 @@ evalInfo = info (Eval <$> renderOpt) (progDesc "Evaluate an AST and output JSON 
 evalBatchInfo :: ParserInfo Command
 evalBatchInfo = info (EvalBatch <$> renderOpt) (progDesc "Evaluate ASTs from a JSON array and output JSON array result")
 
+parseBatchInfo :: ParserInfo Command
+parseBatchInfo = info (ParseBatch <$> renderOpt) (progDesc "Parse Nix files listed in a JSON array, output JSON array of ASTs")
+
+renderBatchInfo :: ParserInfo Command
+renderBatchInfo = info (RenderBatch <$> renderOpt) (progDesc "Render ASTs from a JSON array, output JSON array of Nix sources")
+
 parseCommand :: Parser Command
 parseCommand =
     hsubparser
@@ -47,6 +57,8 @@ parseCommand =
             <> command "render" renderInfo
             <> command "eval" evalInfo
             <> command "eval-batch" evalBatchInfo
+            <> command "parse-batch" parseBatchInfo
+            <> command "render-batch" renderBatchInfo
         )
 
 parseOpt :: Parser Input
@@ -133,6 +145,24 @@ runEvalBatch input = do
             case result of
                 Left err -> die err
                 Right json -> BL.putStr (json <> "\n")
+
+runParseBatch :: Input -> IO ()
+runParseBatch input = do
+    bs <- Input.readBytes input
+    case eitherDecode @[Text] bs of
+        Left err -> die (pack err)
+        Right paths -> do
+            srcs <- mapM TIO.readFile (map unpack paths)
+            case parseBatch srcs of
+                Left err -> die err
+                Right json -> BL.putStr (json <> "\n")
+
+runRenderBatch :: Input -> IO ()
+runRenderBatch input = do
+    bs <- Input.readBytes input
+    case renderBatch bs of
+        Left err -> die err
+        Right nixSrcs -> BL.putStr (encode nixSrcs <> "\n")
 
 die :: Text -> IO a
 die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure

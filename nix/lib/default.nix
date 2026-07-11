@@ -54,6 +54,42 @@ in
     in
     builtins.fromJSON (builtins.readFile json);
 
+  # Parse multiple .nix files into AST values.
+  # NOTE: This is an IFD (Import From Derivation) function.
+  # parseMany :: pkgs -> [Path] -> [AST]
+  parseMany =
+    pkgs: srcs:
+    let
+      # Run nix-ast parse for each source file, collect into a JSON array.
+      # Each ${src} interpolation makes Nix track the path as a derivation input.
+      cmd = builtins.concatStringsSep "\n" (
+        [ "echo '[' > $out" ]
+        ++ lib.imap0 (i: src: ''
+          [ ${toString i} -eq 0 ] || echo ',' >> $out
+          nix-ast parse -f ${src} >> $out
+        '') srcs
+        ++ [ "echo ']' >> $out" ]
+      );
+      json = pkgs.runCommand "nix-ast-parse-many" {
+        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
+      } cmd;
+    in
+    builtins.fromJSON (builtins.readFile json);
+
+  # Render multiple ASTs to .nix source strings.
+  # NOTE: This is an IFD (Import From Derivation) function.
+  # renderMany :: pkgs -> [AST] -> [String]
+  renderMany =
+    pkgs: asts:
+    let
+      json = pkgs.runCommand "nix-ast-render-many" {
+        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
+      } ''
+        nix-ast render-batch -f ${builtins.toFile "asts.json" (builtins.toJSON asts)} > $out
+      '';
+    in
+    builtins.fromJSON (builtins.readFile json);
+
   # Evaluate an AST using hnix and return the result as JSON.
   # NOTE: This is an IFD (Import From Derivation) function.
   # eval :: pkgs -> AST -> Any

@@ -9,10 +9,11 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Nix.Expr.Types qualified as HT
 import Nix.Parser (parseNixText)
+import Data.Aeson qualified as A
 import NixAST
 import Test.QuickCheck
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertFailure, testCase, (@?=))
+import Test.Tasty.HUnit (assertFailure, testCase, (@?=), (@?))
 import Test.Tasty.QuickCheck (testProperty)
 
 main :: IO ()
@@ -24,6 +25,7 @@ tests =
         "nix-ast"
         [ parseRoundtripTests
         , jsonRoundtripTests
+        , batchRoundtripTests
         , propertyTests
         ]
 
@@ -150,6 +152,45 @@ cases =
     , ("nested let-in-if", "let x = let a = 1; b = 2; in a + b; in if x > 2 then x else 0")
     , ("complex param set", "{ x ? 1, y, ... }: x + y")
     , ("param set nested default", "{ x ? { a = 1; }, y }: x.a + y")
+    ]
+
+----------------------------------------------------------------------
+-- Batch roundtrip: parseBatch → renderBatch → re-parse
+----------------------------------------------------------------------
+
+batchRoundtripTests :: TestTree
+batchRoundtripTests = testGroup "batch roundtrip"
+    [ testCase "parseBatch produces valid JSON array of Expr" $ do
+        let srcs = ["42", "true", "\"hello\""]
+        case parseBatch srcs of
+            Left err -> assertFailure (T.unpack err)
+            Right json -> case A.decode @[Expr] json of
+                Nothing -> assertFailure "parseBatch output is not a valid [Expr]"
+                Just exprs -> length exprs @?= 3
+
+    , testCase "renderBatch produces valid Nix sources from JSON array" $ do
+        let srcs = ["42", "true"]
+        case parseBatch srcs of
+            Left err -> assertFailure (T.unpack err)
+            Right json -> case renderBatch json of
+                Left err -> assertFailure (T.unpack err)
+                Right rendered -> do
+                    length rendered @?= 2
+                    case parseNixText (head rendered) of
+                        Left err -> assertFailure (show err)
+                        Right _  -> pure ()
+
+    , testCase "parseBatch / renderBatch roundtrip" $ do
+        let srcs = ["42", "true", "\"hello\"", "1 + 2"]
+        case parseBatch srcs of
+            Left err -> assertFailure (T.unpack err)
+            Right json -> case renderBatch json of
+                Left err -> assertFailure (T.unpack err)
+                Right rendered -> do
+                    length rendered @?= length srcs
+                    let originals = map parseOrDie srcs
+                    let reParsed  = map parseOrDie rendered
+                    originals @?= reParsed
     ]
 
 ----------------------------------------------------------------------
@@ -341,6 +382,11 @@ genBinding size =
 ----------------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------------
+
+parseOrDie :: Text -> HT.NExpr
+parseOrDie s = case parseNixText s of
+    Right e -> stripPositions e
+    Left _  -> error "impossible"
 
 stripPositions :: HT.NExpr -> HT.NExpr
 stripPositions (Fix x) = Fix (go x)

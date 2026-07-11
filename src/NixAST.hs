@@ -5,6 +5,8 @@ module NixAST (
     nixToJSON,
     parseNix,
     renderNix,
+    parseBatch,
+    renderBatch,
 ) where
 
 import Data.Aeson (eitherDecode, encode)
@@ -34,3 +36,13 @@ parseNix src = case parseNixText src of
 
 renderNix :: HT.NExpr -> Text
 renderNix = renderStrict . layoutPretty defaultLayoutOptions . prettyNix
+
+parseBatch :: [Text] -> Either Text BL.ByteString
+parseBatch srcs = encode <$> traverse (fmap toExpr . parseNix) srcs
+
+renderBatch :: BL.ByteString -> Either Text [Text]
+renderBatch bs = do
+    exprs <- case eitherDecode @[Expr] bs of
+        Left err -> Left (T.pack err)
+        Right e  -> pure e
+    traverse (fmap renderNix . fromExpr) exprs

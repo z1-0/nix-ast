@@ -1,7 +1,7 @@
 { lib, pkgs }:
 let
   inherit (pkgs.lib.debug) runTests throwTestFailures;
-  inherit (lib) match syntax traversal toAST parse render;
+  inherit (lib) match syntax traversal toAST parse render parseMany renderMany;
 
   test = expr: expected: { inherit expr expected; };
   assertThrows = expr: test (!(builtins.tryEval expr).success) true;
@@ -26,6 +26,11 @@ throwTestFailures {
 
     testParse_flake = test (match flakeAST { Set = _: true; _ = _: false; }) true;
     testRoundtrip_structure = test flakeAST (parse pkgs (render pkgs flakeAST));
+
+    testParseMany_count = test (builtins.length (parseMany pkgs [ ../flake.nix ../flake.nix ])) 2;
+    testParseMany_content = test (builtins.head (parseMany pkgs [ ../flake.nix ])) flakeAST;
+    testRenderMany_count = test (builtins.length (renderMany pkgs [ flakeAST flakeAST ])) 2;
+    testRenderMany_isString = test (builtins.isString (builtins.head (renderMany pkgs [ flakeAST ]))) true;
 
     # --- Traversal: children/rebuild contract ---
     # rebuild node (children node) == node for various node types

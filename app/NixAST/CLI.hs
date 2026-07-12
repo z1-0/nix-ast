@@ -71,7 +71,7 @@ renderOpt = jsonOpt <|> inputOpt <|> pure (Input.fromStdin showRenderHelp)
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
-                    <> help "Single AST in JSON format"
+                    <> help "AST in JSON format"
                 )
     inputOpt =
         Input.fromInput
@@ -90,7 +90,7 @@ evalOpt = jsonOpt <|> inputOpt <|> pure (Input.fromStdin showEvalHelp)
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
-                    <> help "Single AST in JSON format"
+                    <> help "AST in JSON format"
                 )
     inputOpt =
         Input.fromInput

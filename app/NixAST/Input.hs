@@ -14,7 +14,7 @@ import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import System.IO (hIsTerminalDevice, stdin)
 
-data InputMode = RawNix | SingleJSON | ArrayInput
+data InputMode = RawNix | JSON | ArrayInput
 
 data Input = Input
     { readBytes :: IO BL.ByteString
@@ -50,5 +50,5 @@ fromJSON :: Text -> Input
 fromJSON json =
     Input
         { readBytes = pure (BL.fromStrict (encodeUtf8 json))
-        , inputMode = SingleJSON
+        , inputMode = JSON
         }

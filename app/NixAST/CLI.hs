@@ -152,7 +152,7 @@ runParse input out = case Input.inputMode input of
 
 runRender :: Input -> Maybe FilePath -> IO ()
 runRender input out = case Input.inputMode input of
-    SingleJSON -> do
+    JSON -> do
         bs <- Input.readBytes input
         case jsonToNix bs of
             Left err -> die err
@@ -166,7 +166,7 @@ runRender input out = case Input.inputMode input of
 
 runEval :: Input -> Maybe FilePath -> IO ()
 runEval input out = case Input.inputMode input of
-    SingleJSON -> do
+    JSON -> do
         bs <- Input.readBytes input
         case eitherDecode @Expr bs of
             Left err -> die (pack err)

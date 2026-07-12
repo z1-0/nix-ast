@@ -26,14 +26,20 @@
         hlib = pkgs.haskell.lib;
         nix-ast-dev = hpkgs.callCabal2nix "nix-ast" src { };
 
-        nix-ast-release = hlib.justStaticExecutables (
-          hlib.appendConfigureFlags (hlib.dontCheck nix-ast-dev) [
-            "--ghc-option=-O2"
-            "--ghc-option=-threaded"
-            "--ghc-option=-rtsopts"
-            "--ghc-option=-with-rtsopts=-N"
-          ]
-        );
+        nix-ast-release =
+          (hlib.justStaticExecutables (
+            hlib.appendConfigureFlags (hlib.dontCheck nix-ast-dev) [
+              "--ghc-option=-O2"
+              "--ghc-option=-threaded"
+              "--ghc-option=-rtsopts"
+              "--ghc-option=-with-rtsopts=-N"
+            ]
+          )).overrideAttrs
+            (old: {
+              postInstall = (old.postInstall or "") + ''
+                remove-references-to -t ${hpkgs.hnix} $out/bin/nix-ast
+              '';
+            });
       in
       {
         packages = {

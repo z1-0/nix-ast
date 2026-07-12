@@ -1,8 +1,9 @@
 module NixAST.Input
     ( Input
-    , readText
+    , InputMode (..)
     , readBytes
-    , fromFile
+    , inputMode
+    , fromInput
     , fromStdin
     , fromExpr
     , fromJSON
@@ -11,45 +12,43 @@ module NixAST.Input
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Data.Text.IO qualified as TIO
 import System.IO (hIsTerminalDevice, stdin)
 
+data InputMode = RawNix | SingleJSON | ArrayInput
+
 data Input = Input
-    { readText :: IO Text
-    , readBytes :: IO BL.ByteString
+    { readBytes :: IO BL.ByteString
+    , inputMode :: InputMode
     }
 
-fromFile :: FilePath -> Input
-fromFile path =
+fromInput :: FilePath -> Input
+fromInput path =
     Input
-        { readText = TIO.readFile path
-        , readBytes = BL.readFile path
+        { readBytes = BL.readFile path
+        , inputMode = ArrayInput
         }
 
--- | Create an Input from stdin. The onTtyText/onTtyBytes actions are run
--- when stdin is a terminal, for readText and readBytes respectively.
-fromStdin :: IO Text -> IO BL.ByteString -> Input
-fromStdin onTtyText onTtyBytes =
+fromStdin :: IO BL.ByteString -> Input
+fromStdin onTty =
     Input
-        { readText = checkTty onTtyText TIO.getContents
-        , readBytes = checkTty onTtyBytes BL.getContents
+        { readBytes = checkTty onTty BL.getContents
+        , inputMode = ArrayInput
         }
   where
     checkTty fallback action = do
         isTty <- hIsTerminalDevice stdin
         if isTty then fallback else action
 
--- | Create an Input from a Nix expression string. readBytes is not supported.
 fromExpr :: Text -> Input
 fromExpr expr =
     Input
-        { readText = pure expr
-        , readBytes = fail "--expr is only supported for parse"
+        { readBytes = pure (BL.fromStrict (encodeUtf8 expr))
+        , inputMode = RawNix
         }
 
 fromJSON :: Text -> Input
 fromJSON json =
     Input
-        { readText = pure json
-        , readBytes = pure (BL.fromStrict (encodeUtf8 json))
+        { readBytes = pure (BL.fromStrict (encodeUtf8 json))
+        , inputMode = SingleJSON
         }

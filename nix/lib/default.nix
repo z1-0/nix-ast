@@ -6,96 +6,50 @@ let
   traversal = import ./traversal.nix;
 
   nix-ast-cli = pkgs: packages.${pkgs.stdenv.hostPlatform.system}.nix-ast;
-
-  # Evaluate multiple ASTs in a single IFD derivation.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  evalMany =
-    pkgs: asts:
-    let
-      json = pkgs.runCommand "nix-ast-eval" {
-        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } ''
-        nix-ast eval-batch -f ${builtins.toFile "asts.json" (builtins.toJSON asts)} > $out
-      '';
-    in
-    builtins.fromJSON (builtins.readFile json);
 in
 
 {
   inherit
-    # pseudo pattern matching over node tag
     match
-    # type-checked constructors and predicates
     syntax
-    # traversal and transformation
     traversal
-    # batch evaluate multiple ASTs via IFD
-    evalMany
     ;
 
-  # Convert an AST value to a .nix file.
+  # Parse .nix files into AST values.
   # NOTE: This is an IFD (Import From Derivation) function.
-  # render :: pkgs -> AST -> Path
-  render =
-    pkgs: ast:
-    pkgs.runCommand "nix-ast-render" {
-      nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-    } "nix-ast render -f ${builtins.toFile "ast.json" (builtins.toJSON ast)} > $out";
-
-  # Parse a .nix file into an AST value.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  # parse :: pkgs -> Path -> AST
+  # parse :: pkgs -> [Path] -> [AST]
   parse =
-    pkgs: src:
+    pkgs: srcs:
     let
       json = pkgs.runCommand "nix-ast-parse" {
         nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } "nix-ast parse -f ${src} > $out";
+      } "nix-ast parse --input ${pkgs.writeText "serialize.json" (builtins.toJSON srcs)} --output $out";
     in
     builtins.fromJSON (builtins.readFile json);
 
-  # Parse multiple .nix files into AST values.
+  # Render AST values to Nix source strings.
   # NOTE: This is an IFD (Import From Derivation) function.
-  # parseMany :: pkgs -> [Path] -> [AST]
-  parseMany =
-    pkgs: srcs:
-    let
-      # Run nix-ast parse for each source file, collect into a JSON array.
-      # Each ${src} interpolation makes Nix track the path as a derivation input.
-      cmd = builtins.concatStringsSep "\n" (
-        [ "echo '[' > $out" ]
-        ++ lib.imap0 (i: src: ''
-          [ ${toString i} -eq 0 ] || echo ',' >> $out
-          nix-ast parse -f ${src} >> $out
-        '') srcs
-        ++ [ "echo ']' >> $out" ]
-      );
-      json = pkgs.runCommand "nix-ast-parse-many" {
-        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } cmd;
-    in
-    builtins.fromJSON (builtins.readFile json);
-
-  # Render multiple ASTs to .nix source strings.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  # renderMany :: pkgs -> [AST] -> [String]
-  renderMany =
+  # render :: pkgs -> [AST] -> [String]
+  render =
     pkgs: asts:
     let
-      json = pkgs.runCommand "nix-ast-render-many" {
+      json = pkgs.runCommand "nix-ast-render" {
         nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } ''
-        nix-ast render-batch -f ${builtins.toFile "asts.json" (builtins.toJSON asts)} > $out
-      '';
+      } "nix-ast render --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out";
     in
     builtins.fromJSON (builtins.readFile json);
 
-  # Evaluate an AST using hnix and return the result as JSON.
+  # Evaluate ASTs using hnix and return the results as JSON.
   # NOTE: This is an IFD (Import From Derivation) function.
-  # eval :: pkgs -> AST -> Any
+  # eval :: pkgs -> [AST] -> [Any]
   eval =
-    pkgs: ast:
-    builtins.head (evalMany pkgs [ ast ]);
+    pkgs: asts:
+    let
+      json = pkgs.runCommand "nix-ast-eval" {
+        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
+      } "nix-ast eval --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out";
+    in
+    builtins.fromJSON (builtins.readFile json);
 
   # Convert an AST back to a Nix value.
   # This is the inverse of `toAST` for all values it supports.

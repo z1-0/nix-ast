@@ -4,22 +4,17 @@ module NixAST.CLI (
     runParse,
     runRender,
     runEval,
-    runEvalBatch,
-    runParseBatch,
-    runRenderBatch,
 ) where
 
-import Control.Concurrent (newQSem, signalQSem, waitQSem)
-import Control.Concurrent.Async (mapConcurrently)
-import Control.Exception (bracket_)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack, unpack)
+import Data.Text.Encoding (decodeUtf8)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
 import NixAST.Eval (evalAST, evalASTs)
-import NixAST.Input (Input)
+import NixAST.Input (Input, InputMode (..))
 import NixAST.Input qualified as Input
 import Options.Applicative
 import Options.Applicative.Help (parserHelp, renderHelp)
@@ -28,30 +23,18 @@ import System.Exit (exitFailure)
 import System.IO (stderr)
 
 data Command
-    = Eval Input
-    | EvalBatch Input
-    | Parse Input
-    | ParseBatch Input
-    | Render Input
-    | RenderBatch Input
+    = Eval Input (Maybe FilePath)
+    | Parse Input (Maybe FilePath)
+    | Render Input (Maybe FilePath)
 
 parseInfo :: ParserInfo Command
-parseInfo = info (Parse <$> parseOpt) (progDesc "Parse a Nix expression to AST")
+parseInfo = info (Parse <$> parseOpt <*> outputOpt) (progDesc "Parse Nix expression(s) to AST JSON")
 
 renderInfo :: ParserInfo Command
-renderInfo = info (Render <$> renderOpt) (progDesc "Generate Nix expression from AST")
+renderInfo = info (Render <$> renderOpt <*> outputOpt) (progDesc "Render AST JSON to Nix source")
 
 evalInfo :: ParserInfo Command
-evalInfo = info (Eval <$> renderOpt) (progDesc "Evaluate an AST and output JSON result")
-
-evalBatchInfo :: ParserInfo Command
-evalBatchInfo = info (EvalBatch <$> renderOpt) (progDesc "Evaluate ASTs from a JSON array and output JSON array result")
-
-parseBatchInfo :: ParserInfo Command
-parseBatchInfo = info (ParseBatch <$> renderOpt) (progDesc "Parse Nix files listed in a JSON array, output JSON array of ASTs")
-
-renderBatchInfo :: ParserInfo Command
-renderBatchInfo = info (RenderBatch <$> renderOpt) (progDesc "Render ASTs from a JSON array, output JSON array of Nix sources")
+evalInfo = info (Eval <$> evalOpt <*> outputOpt) (progDesc "Evaluate AST JSON and output result")
 
 parseCommand :: Parser Command
 parseCommand =
@@ -59,13 +42,10 @@ parseCommand =
         ( command "parse" parseInfo
             <> command "render" renderInfo
             <> command "eval" evalInfo
-            <> command "eval-batch" evalBatchInfo
-            <> command "parse-batch" parseBatchInfo
-            <> command "render-batch" renderBatchInfo
         )
 
 parseOpt :: Parser Input
-parseOpt = exprOpt <|> fileOpt <|> pure (Input.fromStdin showParseHelp showParseHelp)
+parseOpt = exprOpt <|> inputOpt <|> pure (Input.fromStdin showParseHelp)
   where
     exprOpt =
         Input.fromExpr
@@ -74,27 +54,61 @@ parseOpt = exprOpt <|> fileOpt <|> pure (Input.fromStdin showParseHelp showParse
                     <> metavar "EXPR"
                     <> help "Nix expression string"
                 )
+    inputOpt =
+        Input.fromInput
+            <$> strOption
+                ( long "input"
+                    <> short 'i'
+                    <> metavar "FILE"
+                    <> help "JSON file containing array of Nix source file paths"
+                )
 
 renderOpt :: Parser Input
-renderOpt = jsonOpt <|> fileOpt <|> pure (Input.fromStdin showRenderHelp showRenderHelp)
+renderOpt = jsonOpt <|> inputOpt <|> pure (Input.fromStdin showRenderHelp)
   where
     jsonOpt =
         Input.fromJSON
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
-                    <> help "AST in JSON format"
+                    <> help "Single AST in JSON format"
+                )
+    inputOpt =
+        Input.fromInput
+            <$> strOption
+                ( long "input"
+                    <> short 'i'
+                    <> metavar "FILE"
+                    <> help "JSON file containing array of ASTs"
                 )
 
-fileOpt :: Parser Input
-fileOpt =
-    Input.fromFile
-        <$> strOption
-            ( long "file"
-                <> short 'f'
-                <> metavar "FILE"
-                <> help "Input file (default: stdin)"
-            )
+evalOpt :: Parser Input
+evalOpt = jsonOpt <|> inputOpt <|> pure (Input.fromStdin showEvalHelp)
+  where
+    jsonOpt =
+        Input.fromJSON
+            <$> strOption
+                ( long "json"
+                    <> metavar "JSON"
+                    <> help "Single AST in JSON format"
+                )
+    inputOpt =
+        Input.fromInput
+            <$> strOption
+                ( long "input"
+                    <> short 'i'
+                    <> metavar "FILE"
+                    <> help "JSON file containing array of ASTs"
+                )
+
+outputOpt :: Parser (Maybe FilePath)
+outputOpt =
+    optional $ strOption
+        ( long "output"
+            <> short 'o'
+            <> metavar "FILE"
+            <> help "Output file (default: stdout)"
+        )
 
 versionOpt :: Parser (a -> a)
 versionOpt =
@@ -113,69 +127,84 @@ opts =
             <> header "nix-ast - Nix AST tool"
         )
 
-runParse :: Input -> IO ()
-runParse input = do
-    src <- Input.readText input
-    case nixToJSON src of
-        Left err -> die err
-        Right json -> BL.putStr (json <> "\n")
+runParse :: Input -> Maybe FilePath -> IO ()
+runParse input out = case Input.inputMode input of
+    RawNix -> do
+        bs <- Input.readBytes input
+        let txt = decodeUtf8 (BL.toStrict bs)
+        case nixToJSON txt of
+            Left err -> die ("Parse error: " <> err)
+            Right json -> writeBytes out json
+    ArrayInput -> do
+        bs <- Input.readBytes input
+        case eitherDecode @[Text] bs of
+            Left err -> die ("JSON decode error: " <> pack err)
+            Right paths -> do
+                asts <- traverse parseFile paths
+                writeBytes out (encode asts)
+    _ -> die "parse --expr accepts a Nix expression; --input accepts a JSON array of paths"
+  where
+    parseFile path = do
+        src <- TIO.readFile (unpack path)
+        case parseNix src of
+            Left err -> die ("Parse error (" <> path <> "): " <> err)
+            Right nExpr -> pure (toExpr nExpr)
 
-runRender :: Input -> IO ()
-runRender input = do
-    bs <- Input.readBytes input
-    case jsonToNix bs of
-        Left err -> die err
-        Right nix -> TIO.putStrLn nix
+runRender :: Input -> Maybe FilePath -> IO ()
+runRender input out = case Input.inputMode input of
+    SingleJSON -> do
+        bs <- Input.readBytes input
+        case jsonToNix bs of
+            Left err -> die err
+            Right nix -> writeText out nix
+    ArrayInput -> do
+        bs <- Input.readBytes input
+        case renderBatch bs of
+            Left err -> die err
+            Right nixSrcs -> writeBytes out (encode nixSrcs)
+    _ -> die "render --json accepts a single AST; --input accepts a JSON array of ASTs"
 
-runEval :: Input -> IO ()
-runEval input = do
-    bs <- Input.readBytes input
-    case eitherDecode @Expr bs of
-        Left err -> die (pack err)
-        Right expr -> do
-            result <- evalAST expr
-            case result of
-                Left err -> die err
-                Right json -> BL.putStr (json <> "\n")
+runEval :: Input -> Maybe FilePath -> IO ()
+runEval input out = case Input.inputMode input of
+    SingleJSON -> do
+        bs <- Input.readBytes input
+        case eitherDecode @Expr bs of
+            Left err -> die (pack err)
+            Right expr -> do
+                result <- evalAST expr
+                case result of
+                    Left err -> die err
+                    Right json -> writeBytes out json
+    ArrayInput -> do
+        bs <- Input.readBytes input
+        case eitherDecode @[Expr] bs of
+            Left err -> die (pack err)
+            Right exprs -> do
+                result <- evalASTs exprs
+                case result of
+                    Left err -> die err
+                    Right json -> writeBytes out json
+    _ -> die "eval --json accepts a single AST; --input accepts a JSON array of ASTs"
 
-runEvalBatch :: Input -> IO ()
-runEvalBatch input = do
-    bs <- Input.readBytes input
-    case eitherDecode @[Expr] bs of
-        Left err -> die (pack err)
-        Right exprs -> do
-            result <- evalASTs exprs
-            case result of
-                Left err -> die err
-                Right json -> BL.putStr (json <> "\n")
+writeBytes :: Maybe FilePath -> BL.ByteString -> IO ()
+writeBytes Nothing  bs = BL.putStr (bs <> "\n")
+writeBytes (Just p) bs = BL.writeFile p bs
 
-runParseBatch :: Input -> IO ()
-runParseBatch input = do
-    bs <- Input.readBytes input
-    case eitherDecode @[Text] bs of
-        Left err -> die (pack err)
-        Right paths -> do
-            sem <- newQSem 50
-            srcs <- mapConcurrently (bracket_ (waitQSem sem) (signalQSem sem) . TIO.readFile . unpack) paths
-            case parseBatch srcs of
-                Left err -> die err
-                Right json -> BL.putStr (json <> "\n")
-
-runRenderBatch :: Input -> IO ()
-runRenderBatch input = do
-    bs <- Input.readBytes input
-    case renderBatch bs of
-        Left err -> die err
-        Right nixSrcs -> BL.putStr (encode nixSrcs <> "\n")
+writeText :: Maybe FilePath -> Text -> IO ()
+writeText Nothing  t = TIO.putStrLn t
+writeText (Just p) t = TIO.writeFile p t
 
 die :: Text -> IO a
 die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
 
 showParseHelp :: IO a
-showParseHelp = showSubcommandHelp (Parse <$> parseOpt)
+showParseHelp = showSubcommandHelp (Parse <$> parseOpt <*> outputOpt)
 
 showRenderHelp :: IO a
-showRenderHelp = showSubcommandHelp (Render <$> renderOpt)
+showRenderHelp = showSubcommandHelp (Render <$> renderOpt <*> outputOpt)
+
+showEvalHelp :: IO a
+showEvalHelp = showSubcommandHelp (Eval <$> evalOpt <*> outputOpt)
 
 showSubcommandHelp :: Parser Command -> IO a
 showSubcommandHelp p = do

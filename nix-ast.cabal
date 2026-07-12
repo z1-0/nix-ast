@@ -27,6 +27,7 @@ common shared
 
   ghc-options:        -j4 -Wall -Wcompat
   build-depends:
+    , aeson       >=2.0
     , base        >=4.12
     , bytestring  >=0.11
     , text        >=2.0
@@ -34,7 +35,6 @@ common shared
 
 common dep
   build-depends:
-    , aeson     >=2.0
     , data-fix  >=0.3
     , hnix      >=0.17
 
@@ -60,10 +60,10 @@ executable nix-ast
   other-modules:
     NixAST.CLI
     Paths_nix_ast
+
   build-depends:
+    , async                 >=2.2
     , nix-ast
-    , aeson       >=2.0
-    , async       >=2.2
     , optparse-applicative  >=0.18
 
 test-suite tests

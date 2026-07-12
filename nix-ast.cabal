@@ -45,7 +45,6 @@ library
     NixAST
     NixAST.Convert
     NixAST.Eval
-    NixAST.Input
     NixAST.Types
 
   hs-source-dirs:  src
@@ -59,6 +58,7 @@ executable nix-ast
   hs-source-dirs: app
   other-modules:
     NixAST.CLI
+    NixAST.Input
     Paths_nix_ast
 
   build-depends:

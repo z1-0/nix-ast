@@ -45,7 +45,7 @@ exec = \case
 
 execEval :: Maybe Text -> IO ()
 execEval (Just json) = do
-    expr <- dieLeft (DecodeErr . pack) (eitherDecode @Expr (BL.fromStrict . encodeUtf8 $ json))
+    expr <- decodeExpr json
     result <- evalAST expr
     case result of
         Left err -> die (EvalErr err)
@@ -78,7 +78,7 @@ execRender :: Maybe Text -> Maybe FilePath -> IO ()
 execRender (Just _) (Just _) =
     die (UsageErr "--out-dir is not supported with --json; render a single AST to stdout")
 execRender (Just json) Nothing = do
-    expr <- dieLeft (DecodeErr . pack) (eitherDecode @Expr (BL.fromStrict . encodeUtf8 $ json))
+    expr <- decodeExpr json
     nixExpr <- dieLeft ConvErr (fromExpr expr)
     TIO.putStrLn (renderNix nixExpr)
 execRender Nothing outDir = do
@@ -91,6 +91,9 @@ execRender Nothing outDir = do
             forM_ (zip [(0 :: Int) ..] asts) $ \(i, ast) -> do
                 nixExpr <- dieLeft ConvErr (fromExpr ast)
                 TIO.writeFile (dir <> "/" <> show i <> ".nix") (renderNix nixExpr)
+
+decodeExpr :: Text -> IO Expr
+decodeExpr json = dieLeft (DecodeErr . pack) (eitherDecode @Expr (BL.fromStrict (encodeUtf8 json)))
 
 getStdinJSON :: forall a. (FromJSON a) => IO [a]
 getStdinJSON = do

@@ -1,22 +1,33 @@
 # Internal helper functions for extracting children from non-Expr container
 # nodes and rebuilding them. Used by traversal.nix.
 let
-  inherit (builtins) concatMap elemAt head length tail ;
+  inherit (builtins) concatMap elemAt head length tail;
 
   match = import ./match.nix;
+
+  extractAntiquoted = parts: concatMap (p: match p {
+    Antiquoted = { contents, ... }: [ contents ];
+    _ = _: [ ];
+  }) parts;
+
+  foldlWithIndex = step: init: list:
+    let
+      go = acc: i: xs:
+        if xs == [ ] then { result = acc; index = i; }
+        else
+          let
+            x = head xs;
+            rest = tail xs;
+            next = step acc i x;
+          in go next.result next.index rest;
+    in go init 0 list;
 in
 rec {
   # stringChildren :: Node -> [Node]
   # Extract antiquoted expressions from a String node (DoubleQuoted/Indented)
   stringChildren = s: match s {
-    DoubleQuoted = dq: concatMap (p: match p {
-      Antiquoted = { contents, ... }: [ contents ];
-      _ = _: [ ];
-    }) dq.contents;
-    Indented = ind: concatMap (p: match p {
-      Antiquoted = { contents, ... }: [ contents ];
-      _ = _: [ ];
-    }) ind.parts;
+    DoubleQuoted = dq: extractAntiquoted dq.contents;
+    Indented = ind: extractAntiquoted ind.parts;
   };
 
   # keyChildren :: Node -> [Node]
@@ -38,15 +49,12 @@ rec {
         DoubleQuoted = dq: dq.contents;
         Indented = ind: ind.parts;
       };
-      goParts = acc: i: ps:
-        if ps == [ ] then { result = acc; index = i; }
-        else
-          let p = head ps; rest = tail ps; in
-          match p {
-            Antiquoted = pNode: goParts (acc ++ [ (pNode // { contents = elemAt cs i; }) ]) (i + 1) rest;
-            _ = _: goParts (acc ++ [ p ]) i rest;
-          };
-      rebuilt = goParts [ ] index parts;
+      step = acc: i: p:
+        match p {
+          Antiquoted = pNode: { result = acc ++ [ (pNode // { contents = elemAt cs i; }) ]; index = i + 1; };
+          _ = _: { result = acc ++ [ p ]; index = i; };
+        };
+      rebuilt = foldlWithIndex step [ ] parts;
     in
     {
       result = match s {
@@ -60,23 +68,20 @@ rec {
   # Rebuild a key path by replacing antiquoted expressions with new children
   rebuildKeyPath = cs: index: keys:
     let
-      go = acc: i: ks:
-        if ks == [ ] then { result = acc; index = i; }
-        else
-          let k = head ks; rest = tail ks; in
-          match k {
-            DynamicKey = kNode: match kNode.contents {
-              Antiquoted = _:
-                go (acc ++ [ (kNode // { contents = kNode.contents // { contents = elemAt cs i; }; }) ]) (i + 1) rest;
-              Plain = { contents, ... }:
-                let rebuilt = rebuildString contents cs i; in
-                go (acc ++ [ (kNode // { contents = rebuilt.result; }) ]) rebuilt.index rest;
-              EscapedNewline = _: go (acc ++ [ kNode ]) i rest;
-            };
-            StaticKey = _: go (acc ++ [ k ]) i rest;
+      step = acc: i: k:
+        match k {
+          DynamicKey = kNode: match kNode.contents {
+            Antiquoted = _:
+              { result = acc ++ [ (kNode // { contents = kNode.contents // { contents = elemAt cs i; }; }) ]; index = i + 1; };
+            Plain = { contents, ... }:
+              let rebuilt = rebuildString contents cs i; in
+              { result = acc ++ [ (kNode // { contents = rebuilt.result; }) ]; index = rebuilt.index; };
+            EscapedNewline = _: { result = acc ++ [ kNode ]; index = i; };
           };
+          StaticKey = _: { result = acc ++ [ k ]; index = i; };
+        };
     in
-    go [ ] index keys;
+    foldlWithIndex step [ ] keys;
 
   # bindingChildren :: [Binding] -> [Node]
   bindingChildren =
@@ -90,41 +95,32 @@ rec {
     ) bindings;
 
   # rebuildBindings :: [Node] -> [Binding] -> [Binding]
-  rebuildBindings =
-    cs: bindings:
+  rebuildBindings = cs: bindings:
     let
-      go =
-        acc: index: bs:
-        if bs == [ ] then
-          acc
-        else
-          let
-            b = head bs;
-            rest = tail bs;
-          in
-          match b {
-            Inherit =
-              { scope, ... }:
-              if scope != null then
-                go (acc ++ [ (b // { scope = elemAt cs index; }) ]) (index + 1) rest
-              else
-                go (acc ++ [ b ]) index rest;
-            NamedVar = bNode:
-              let pathResult = rebuildKeyPath cs (index + 1) bNode.attrPath; in
-              go (acc ++ [ (bNode // { value = elemAt cs index; attrPath = pathResult.result; }) ]) pathResult.index rest;
-          };
+      step = acc: index: b:
+        match b {
+          Inherit = { scope, ... }:
+            if scope != null then
+              { result = acc ++ [ (b // { scope = elemAt cs index; }) ]; index = index + 1; }
+            else
+              { result = acc ++ [ b ]; index = index; };
+          NamedVar = bNode:
+            let pathResult = rebuildKeyPath cs (index + 1) bNode.attrPath; in
+            { result = acc ++ [ (bNode // { value = elemAt cs index; attrPath = pathResult.result; }) ]; index = pathResult.index; };
+        };
+      rebuilt = foldlWithIndex step [ ] bindings;
     in
-    go [ ] 0 bindings;
+    rebuilt.result;
 
   # paramsChildren :: Params -> [Node]
   # Extract Expr children from a Params node (defaults in ParamSet)
   paramsChildren = params: match params {
-    Param = _: [];
+    Param = _: [ ];
     ParamSet = ps:
       concatMap (pair:
         if length pair >= 2 && elemAt pair 1 != null
         then [ elemAt pair 1 ]
-        else []
+        else [ ]
       ) ps.params;
   };
 
@@ -134,20 +130,16 @@ rec {
     Param = _: { result = params; index = index; };
     ParamSet = ps:
       let
-        go = acc: i: pairs:
-          if pairs == [] then { result = acc; index = i; }
+        step = acc: i: pair:
+          let
+            name = elemAt pair 0;
+            hasDefault = length pair >= 2 && elemAt pair 1 != null;
+          in
+          if hasDefault then
+            { result = acc ++ [ [name (elemAt cs i)] ]; index = i + 1; }
           else
-            let
-              p = head pairs;
-              rest = tail pairs;
-              name = elemAt p 0;
-              hasDefault = length p >= 2 && elemAt p 1 != null;
-            in
-            if hasDefault then
-              go (acc ++ [ [name (elemAt cs i)] ]) (i + 1) rest
-            else
-              go (acc ++ [ [name] ]) i rest;
-        rebuilt = go [] index ps.params;
+            { result = acc ++ [ [name] ]; index = i; };
+        rebuilt = foldlWithIndex step [ ] ps.params;
       in
       {
         result = ps // { params = rebuilt.result; };

@@ -1,7 +1,7 @@
 { lib, pkgs }:
 let
   inherit (pkgs.lib.debug) runTests throwTestFailures;
-  inherit (lib) match syntax traversal toAST parse render eval;
+  inherit (lib) match syntax traversal toAST fromAST parse render eval;
 
   test = expr: expected: { inherit expr expected; };
   assertThrows = expr: test (!(builtins.tryEval expr).success) true;
@@ -19,23 +19,39 @@ throwTestFailures {
     testToAST_function = assertThrows (toAST (x: x));
     testToAST_attrset = test (toAST { x = 1; }) (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ]);
 
+    testFromAST_int = test (fromAST (syntax.mkInt 42)) 42;
+    testFromAST_float = test (fromAST (syntax.mkFloat 3.14)) 3.14;
+    testFromAST_bool = test (fromAST (syntax.mkBool true)) true;
+    testFromAST_null = test (fromAST syntax.mkNull) null;
+    testFromAST_string = test (fromAST (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]))) "hi";
+    testFromAST_list = test (fromAST (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ])) ])) [ 1 "a" ];
+    testFromAST_set = test (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ])) { x = 1; };
+    testFromAST_recursiveSet = assertThrows (fromAST (syntax.mkSet true []));
+
+    testEval_int = test (builtins.head (eval pkgs [ (syntax.mkInt 42) ])) 42;
+    testEval_bool = test (builtins.head (eval pkgs [ (syntax.mkBool true) ])) true;
+
     testMatch_exact = test (match (syntax.mkSym "x") { Sym = n: n.contents; }) "x";
     testMatch_wildcard = test (match syntax.mkNull { _ = n: n.tag; }) "Constant";
     testMatch_nonNode = assertThrows (match { } { _ = n: true; });
     testMatch_nonExhaustive = assertThrows (match (syntax.mkSym "x") { Int = n: n; });
 
     testParse_flake = test (match flakeAST { Set = _: true; _ = _: false; }) true;
-    testRoundtrip_structure =
-      test flakeAST (
-        builtins.head (parse pkgs [
-          (pkgs.writeText "roundtrip.nix" (builtins.head (render pkgs [ flakeAST ])))
-        ])
-      );
+    testRoundtrip_simple =
+      let
+        src = "{ a = 1; b = 2; }";
+        srcFile = pkgs.writeText "test.nix" src;
+        ast = builtins.head (parse pkgs [ srcFile ]);
+        rendered = builtins.head (render pkgs [ ast ]);
+      in test src (builtins.readFile rendered);
 
     testParse_count = test (builtins.length (parse pkgs [ ../flake.nix ../flake.nix ])) 2;
     testParse_content = test (builtins.head (parse pkgs [ ../flake.nix ])) flakeAST;
-    testRender_count = test (builtins.length (render pkgs [ flakeAST flakeAST ])) 2;
-    testRender_isString = test (builtins.isString (builtins.head (render pkgs [ flakeAST ]))) true;
+    testRender_returnsList = test (builtins.isList (render pkgs [ flakeAST ])) true;
+    testRender_pathsAreStrings =
+      let files = render pkgs [ flakeAST flakeAST ];
+      in test (builtins.all builtins.isString files) true;
+    testRender_twoAsts = test (builtins.length (render pkgs [ flakeAST flakeAST ])) 2;
 
     # --- Traversal: children/rebuild contract ---
     # rebuild node (children node) == node for various node types

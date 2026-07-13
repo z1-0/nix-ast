@@ -16,6 +16,7 @@ in
     ;
 
   # Parse .nix files into AST values.
+  # Returns: [AST], one per input path, same order.
   # NOTE: This is an IFD (Import From Derivation) function.
   # parse :: pkgs -> [Path] -> [AST]
   parse =
@@ -27,19 +28,25 @@ in
     in
     builtins.fromJSON (builtins.readFile json);
 
-  # Render AST values to Nix source strings.
+  # Render ASTs to importable .nix files (named <n>.nix by index).
+  # Returns: [Path], one store path per AST, same order.
   # NOTE: This is an IFD (Import From Derivation) function.
-  # render :: pkgs -> [AST] -> [String]
+  # render :: pkgs -> [AST] -> [Path]
   render =
     pkgs: asts:
     let
-      json = pkgs.runCommand "nix-ast-render" {
+      dir = pkgs.runCommand "nix-ast-render" {
         nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } "nix-ast render --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out";
+      } ''
+        mkdir -p $out
+        nix-ast render --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out
+      '';
+      n = builtins.length asts;
     in
-    builtins.fromJSON (builtins.readFile json);
+    map (i: "${dir}/${toString i}.nix") (builtins.genList (x: x) n);
 
-  # Evaluate ASTs using hnix and return the results as JSON.
+  # Evaluate ASTs to Nix values (JSON-serializable only; functions/derivations error).
+  # Returns: [Any], one value per AST, same order.
   # NOTE: This is an IFD (Import From Derivation) function.
   # eval :: pkgs -> [AST] -> [Any]
   eval =
@@ -51,10 +58,9 @@ in
     in
     builtins.fromJSON (builtins.readFile json);
 
-  # Convert an AST back to a Nix value.
-  # This is the inverse of `toAST` for all values it supports.
-  # Strings with interpolation work when the interpolated expression is a Str node or plain text.
-  # NOTE: Paths are returned as strings since Nix cannot dynamically construct a path value.
+  # Convert an AST to a Nix value (inverse of toAST).
+  # A pure evaluation function — no IFD, runs entirely in Nix.
+  # Paths are returned as strings; interpolation only supports Str nodes or plain text.
   # fromAST :: AST -> a
   fromAST =
     ast:
@@ -115,8 +121,8 @@ in
     in
     go ast;
 
-  # Convert any Nix value to its AST, recursing into attrsets and lists.
-  # Functions and derivations are not supported and will raise an error.
+  # Convert a Nix value to its AST (recurses into attrsets and lists).
+  # Functions and derivations will raise an error.
   # toAST :: a -> AST
   toAST =
     value:

@@ -6,6 +6,7 @@ module NixAST.CLI (
     runEval,
 ) where
 
+import Control.Monad (forM_)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack, unpack)
@@ -161,7 +162,12 @@ runRender input out = case Input.inputMode input of
         bs <- Input.readBytes input
         case renderBatch bs of
             Left err -> die err
-            Right nixSrcs -> writeBytes out (encode nixSrcs)
+            Right nixSrcs -> case out of
+                Nothing ->
+                    BL.putStr (encode nixSrcs <> "\n")
+                Just dir -> do
+                    forM_ (zip [(0 :: Int) ..] nixSrcs) $ \(i, src) ->
+                        TIO.writeFile (dir <> "/" <> show i <> ".nix") src
     _ -> die "render --json accepts a single AST; --input accepts a JSON array of ASTs"
 
 runEval :: Input -> Maybe FilePath -> IO ()

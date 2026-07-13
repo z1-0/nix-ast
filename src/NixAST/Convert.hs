@@ -3,7 +3,6 @@ module NixAST.Convert (
     toExpr,
 ) where
 
-import Control.Applicative (liftA3)
 import Data.Coerce (coerce)
 import Data.Fix (Fix (..))
 import Data.List.NonEmpty qualified as NE
@@ -78,25 +77,26 @@ toParams (HT.ParamSet args variadic set) = NT.ParamSet args isVariadic (map conv
 fromExpr :: NT.Expr -> Either Text HT.NExpr
 fromExpr expr = Fix <$> fromExprF expr
 
-fromExprF :: NT.Expr -> Either Text (HT.NExprF HT.NExpr)
-fromExprF NT.Abs{..}            = liftA2 HT.NAbs (fromParams params) (fromExpr body)
-fromExprF NT.App{..}            = liftA2 HT.NApp (fromExpr func) (fromExpr arg)
-fromExprF NT.Assert{..}         = liftA2 HT.NAssert (fromExpr cond) (fromExpr body)
-fromExprF NT.Binary{..}         = liftA3 HT.NBinary (fromBinaryOp op) (fromExpr left) (fromExpr right)
-fromExprF (NT.Constant atom)    = pure $ HT.NConstant (fromAtom atom)
-fromExprF (NT.EnvPath path)     = pure $ HT.NEnvPath (Path path)
-fromExprF NT.HasAttr{..}        = liftA2 HT.NHasAttr (fromExpr expr) (traverse fromKey attrPath)
-fromExprF NT.If{..}             = liftA3 HT.NIf (fromExpr cond) (fromExpr thenExpr) (fromExpr elseExpr)
-fromExprF NT.Let{..}            = liftA2 HT.NLet (traverse fromBinding bindings) (fromExpr body)
-fromExprF (NT.List items)       = HT.NList <$> traverse fromExpr items
-fromExprF (NT.LiteralPath path) = pure $ HT.NLiteralPath (Path path)
-fromExprF NT.Select{..}         = liftA3 HT.NSelect (traverse fromExpr defaultValue) (fromExpr expr) (traverse fromKey selectPath)
-fromExprF NT.Set{..}            = HT.NSet s <$> traverse fromBinding bindings where s = if recursive then HT.Recursive else HT.NonRecursive
-fromExprF (NT.Str value)        = HT.NStr <$> fromNString value
-fromExprF (NT.Sym name)         = pure $ HT.NSym name
-fromExprF (NT.SynHole name)     = pure $ HT.NSynHole name
-fromExprF NT.Unary{..}          = liftA2 HT.NUnary (fromUnaryOp op) (fromExpr arg)
-fromExprF NT.With{..}           = liftA2 HT.NWith (fromExpr namespace) (fromExpr body)
+fromExprF :: NT.Expr                          -> Either Text (HT.NExprF HT.NExpr)
+fromExprF = \case
+    NT.Abs{params, body}                      -> HT.NAbs <$> fromParams params <*> fromExpr body
+    NT.App{func, arg}                         -> HT.NApp <$> fromExpr func <*> fromExpr arg
+    NT.Assert{cond, body}                     -> HT.NAssert <$> fromExpr cond <*> fromExpr body
+    NT.Binary{op, left, right}                -> HT.NBinary <$> fromBinaryOp op <*> fromExpr left <*> fromExpr right
+    NT.Constant atom                          -> pure $ HT.NConstant (fromAtom atom)
+    NT.EnvPath path                           -> pure $ HT.NEnvPath (Path path)
+    NT.HasAttr{expr, attrPath}                -> HT.NHasAttr <$> fromExpr expr <*> traverse fromKey attrPath
+    NT.If{cond, thenExpr, elseExpr}           -> HT.NIf <$> fromExpr cond <*> fromExpr thenExpr <*> fromExpr elseExpr
+    NT.Let{bindings, body}                    -> HT.NLet <$> traverse fromBinding bindings <*> fromExpr body
+    NT.List items                             -> HT.NList <$> traverse fromExpr items
+    NT.LiteralPath path                       -> pure $ HT.NLiteralPath (Path path)
+    NT.Select{defaultValue, expr, selectPath} -> HT.NSelect <$> traverse fromExpr defaultValue <*> fromExpr expr <*> traverse fromKey selectPath
+    NT.Set{recursive, bindings}               -> HT.NSet flag <$> traverse fromBinding bindings where flag = if recursive then HT.Recursive else HT.NonRecursive
+    NT.Str value                              -> HT.NStr <$> fromNString value
+    NT.Sym name                               -> pure $ HT.NSym name
+    NT.SynHole name                           -> pure $ HT.NSynHole name
+    NT.Unary{op, arg}                         -> HT.NUnary <$> fromUnaryOp op <*> fromExpr arg
+    NT.With{namespace, body}                  -> HT.NWith <$> fromExpr namespace <*> fromExpr body
 
 fromAtom :: NT.Atom -> HT.NAtom
 fromAtom (NT.Bool b)  = HT.NBool b

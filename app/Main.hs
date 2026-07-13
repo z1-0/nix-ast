@@ -1,7 +1,7 @@
 module Main (main) where
 
-import NixAST.CLI (checkTty, cliParser)
-import NixAST.Run (runCommand)
+import NixAST.Exec (exec)
+import NixAST.Parser (appInfo, warnOnTty)
 import Options.Applicative (execParser)
 import System.IO (hSetEncoding, stderr, stdin, stdout, utf8)
 
@@ -10,4 +10,4 @@ main = do
     hSetEncoding stdin utf8
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
-    execParser cliParser >>= \cmd -> checkTty cmd >> runCommand cmd
+    execParser appInfo >>= \cmd -> warnOnTty cmd >> exec cmd

@@ -3,7 +3,7 @@
 let
   inherit (builtins) concatMap elemAt head length tail;
 
-  match = import ./match.nix;
+  match = import ../match.nix;
 
   extractAntiquoted = parts: concatMap (p: match p {
     Antiquoted = { contents, ... }: [ contents ];

@@ -7,11 +7,28 @@
 #   3. Keep the order consistent between the two
 
 let
-  inherit (builtins) concatMap elemAt genList head length tail ;
+  inherit (builtins)
+    concatMap
+    elemAt
+    genList
+    head
+    length
+    ;
 
-  match = import ./match.nix;
-  h = import ./helpers.nix;
+  inherit (import ./utils.nix)
+    bindingChildren
+    keyChildren
+    paramsChildren
+    rebuildBindings
+    rebuildKeyPath
+    rebuildParams
+    rebuildString
+    stringChildren
+    ;
+
+  match = import ../match.nix;
 in
+
 rec {
   # children :: Node -> [Node]
   #
@@ -21,63 +38,79 @@ rec {
   children =
     node:
     match node {
-      Abs = { params, body, ... }: h.paramsChildren params ++ [ body ];
-      App = { func, arg, ... }: [ func arg ];
-      Assert = { cond, body, ... }: [ cond body ];
-      Binary = { left, right, ... }: [ left right ];
+      Abs = { params, body, ... }: paramsChildren params ++ [ body ];
+      App = { func, arg, ... }: [
+        func
+        arg
+      ];
+      Assert = { cond, body, ... }: [
+        cond
+        body
+      ];
+      Binary = { left, right, ... }: [
+        left
+        right
+      ];
       Constant = _: [ ];
       EnvPath = _: [ ];
-      HasAttr = { expr, attrPath, ... }: [ expr ] ++ concatMap h.keyChildren attrPath;
-      If = { cond, thenExpr, elseExpr, ... }: [ cond thenExpr elseExpr ];
-      Let = { bindings, body, ... }: h.bindingChildren bindings ++ [ body ];
+      HasAttr = { expr, attrPath, ... }: [ expr ] ++ concatMap keyChildren attrPath;
+      If =
+        {
+          cond,
+          thenExpr,
+          elseExpr,
+          ...
+        }:
+        [
+          cond
+          thenExpr
+          elseExpr
+        ];
+      Let = { bindings, body, ... }: bindingChildren bindings ++ [ body ];
       List = { contents, ... }: contents;
       LiteralPath = _: [ ];
-      Select = { defaultValue, expr, selectPath, ... }: [ expr ] ++ concatMap h.keyChildren selectPath ++ (if defaultValue != null then [ defaultValue ] else [ ]);
-      Set = { bindings, ... }: h.bindingChildren bindings;
-      Str = { contents, ... }: h.stringChildren contents;
+      Select =
+        {
+          defaultValue,
+          expr,
+          selectPath,
+          ...
+        }:
+        [ expr ]
+        ++ concatMap keyChildren selectPath
+        ++ (if defaultValue != null then [ defaultValue ] else [ ]);
+      Set = { bindings, ... }: bindingChildren bindings;
+      Str = { contents, ... }: stringChildren contents;
       Sym = _: [ ];
       SynHole = _: [ ];
       Unary = { arg, ... }: [ arg ];
-      With = { namespace, body, ... }: [ namespace body ];
+      With = { namespace, body, ... }: [
+        namespace
+        body
+      ];
     };
 
   # contexts :: Node -> [(Node, Node -> Node)]
   # Every subnode paired with a function to replace it in its context.
   contexts =
     node:
-    let
-      processHoles =
-        holesList:
-        if length holesList == 0 then
-          [ ]
-        else
-          let
-            pair = head holesList;
-            c = elemAt pair 0;
-            ctx = elemAt pair 1;
-            rest = tail holesList;
-            subContexts = contexts c;
-            mappedSubs = map (
-              sub:
-              let
-                subNode = elemAt sub 0;
-                subFn = elemAt sub 1;
-              in
-              [
-                subNode
-                (x: ctx (subFn x))
-              ]
-            ) subContexts;
-          in
-          mappedSubs ++ processHoles rest;
-    in
     [
       [
         node
         (x: x)
       ]
     ]
-    ++ processHoles (holes node);
+    ++ concatMap (
+      pair:
+      let
+        c = elemAt pair 0;
+        ctx = elemAt pair 1;
+      in
+      map (sub: [
+        (elemAt sub 0)
+        (x: ctx ((elemAt sub 1) x))
+      ]) (contexts c)
+    ) (holes node);
 
   # descend :: (Node -> Node) -> Node -> Node
   # Apply a transformation to every immediate child, then rebuild.
@@ -90,16 +123,17 @@ rec {
     let
       cs = children node;
       len = length cs;
-      indices = genList (x: x) len;
     in
-    map (
+    genList (
       i:
       let
         c = elemAt cs i;
-        replace = new: rebuild node (map (j: if j == i then new else elemAt cs j) indices);
       in
-      [ c replace ]
-    ) indices;
+      [
+        c
+        (new: rebuild node (genList (j: if j == i then new else elemAt cs j) len))
+      ]
+    ) len;
 
   # para :: (Node -> [a] -> a) -> Node -> a
   # Paramorphism: f receives the node and the recursively-computed results from children.
@@ -114,9 +148,16 @@ rec {
   rebuild =
     node: cs:
     match node {
-      Abs = n:
-        let pResult = h.rebuildParams cs 0 n.params; in
-        n // { params = pResult.result; body = elemAt cs pResult.index; };
+      Abs =
+        n:
+        let
+          pResult = rebuildParams cs 0 n.params;
+        in
+        n
+        // {
+          params = pResult.result;
+          body = elemAt cs pResult.index;
+        };
       App =
         n:
         n
@@ -142,8 +183,14 @@ rec {
       EnvPath = n: n;
       HasAttr =
         n:
-        let pathResult = h.rebuildKeyPath cs 1 n.attrPath; in
-        n // { expr = elemAt cs 0; attrPath = pathResult.result; };
+        let
+          pathResult = rebuildKeyPath cs 1 n.attrPath;
+        in
+        n
+        // {
+          expr = elemAt cs 0;
+          attrPath = pathResult.result;
+        };
       If =
         n:
         n
@@ -156,14 +203,16 @@ rec {
         n:
         n
         // {
-          bindings = h.rebuildBindings cs n.bindings;
+          bindings = rebuildBindings cs n.bindings;
           body = elemAt cs (length cs - 1);
         };
       List = n: n // { contents = cs; };
       LiteralPath = n: n;
       Select =
         n:
-        let pathResult = h.rebuildKeyPath cs 1 n.selectPath; in
+        let
+          pathResult = rebuildKeyPath cs 1 n.selectPath;
+        in
         if n.defaultValue != null then
           n
           // {
@@ -172,9 +221,13 @@ rec {
             defaultValue = elemAt cs pathResult.index;
           }
         else
-          n // { expr = elemAt cs 0; selectPath = pathResult.result; };
-      Set = n: n // { bindings = h.rebuildBindings cs n.bindings; };
-      Str = n: n // { contents = (h.rebuildString n.contents cs 0).result; };
+          n
+          // {
+            expr = elemAt cs 0;
+            selectPath = pathResult.result;
+          };
+      Set = n: n // { bindings = rebuildBindings cs n.bindings; };
+      Str = n: n // { contents = (rebuildString n.contents cs 0).result; };
       Sym = n: n;
       SynHole = n: n;
       Unary = n: n // { arg = head cs; };

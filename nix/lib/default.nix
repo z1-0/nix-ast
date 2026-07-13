@@ -3,7 +3,7 @@
 let
   match = import ./match.nix;
   syntax = import ./syntax.nix;
-  traversal = import ./traversal.nix;
+  traversal = import ./traversal;
 
   nix-ast-cli = pkgs: packages.${pkgs.stdenv.hostPlatform.system}.nix-ast;
 in

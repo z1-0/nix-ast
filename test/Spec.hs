@@ -74,19 +74,14 @@ mkJsonTest (name, src) =
         Left err -> assertFailure (show err)
         Right expr -> do
             let json = encode (toExpr expr)
-            case jsonToNix json of
-                Left err -> assertFailure ("jsonToNix failed: " <> T.unpack err)
-                Right nixSrc -> case parseNixText nixSrc of
-                    Left err ->
-                        assertFailure
-                            ( "Re-parse after jsonToNix failed: "
-                                <> show err
-                                <> "\n  src:      "
-                                <> show src
-                                <> "\n  nixSrc:   "
-                                <> show nixSrc
-                            )
-                    Right expr2 -> stripPositions expr @?= stripPositions expr2
+            case A.eitherDecode @Expr json of
+                Left err -> assertFailure ("JSON decode failed: " <> err)
+                Right decoded -> case fromExpr decoded of
+                    Left err -> assertFailure ("fromExpr failed: " <> T.unpack err)
+                    Right nExpr -> case parseNixText (renderNix nExpr) of
+                        Left err ->
+                            assertFailure ("Re-parse after roundtrip failed: " <> show err)
+                        Right expr2 -> stripPositions expr @?= stripPositions expr2
 
 ----------------------------------------------------------------------
 -- Test cases by category
@@ -160,19 +155,21 @@ cases =
 
 batchRoundtripTests :: TestTree
 batchRoundtripTests = testGroup "batch roundtrip"
-    [ testCase "parseBatch produces valid JSON array of Expr" $ do
+    [ testCase "parse→encode→decode produces valid [Expr]" $ do
         let srcs = ["42", "true", "\"hello\""]
-        case parseBatch srcs of
+            result = traverse (fmap toExpr . parseNix) srcs
+        case result of
             Left err -> assertFailure (T.unpack err)
-            Right json -> case A.decode @[Expr] json of
-                Nothing -> assertFailure "parseBatch output is not a valid [Expr]"
-                Just exprs -> length exprs @?= 3
+            Right exprs -> case A.decode @[Expr] (encode exprs) of
+                Nothing -> assertFailure "encode/decode roundtrip failed"
+                Just decoded -> length decoded @?= 3
 
-    , testCase "renderBatch produces valid Nix sources from JSON array" $ do
+    , testCase "encode→decode→render produces valid Nix sources" $ do
         let srcs = ["42", "true"]
-        case parseBatch srcs of
+            result = traverse (fmap toExpr . parseNix) srcs
+        case result of
             Left err -> assertFailure (T.unpack err)
-            Right json -> case renderBatch json of
+            Right exprs -> case traverse (fmap renderNix . fromExpr) exprs of
                 Left err -> assertFailure (T.unpack err)
                 Right rendered -> do
                     length rendered @?= 2
@@ -180,16 +177,17 @@ batchRoundtripTests = testGroup "batch roundtrip"
                         Left err -> assertFailure (show err)
                         Right _  -> pure ()
 
-    , testCase "parseBatch / renderBatch roundtrip" $ do
+    , testCase "parse→render roundtrip" $ do
         let srcs = ["42", "true", "\"hello\"", "1 + 2"]
-        case parseBatch srcs of
+            result = traverse (fmap toExpr . parseNix) srcs
+        case result of
             Left err -> assertFailure (T.unpack err)
-            Right json -> case renderBatch json of
+            Right exprs -> case traverse (fmap renderNix . fromExpr) exprs of
                 Left err -> assertFailure (T.unpack err)
                 Right rendered -> do
                     length rendered @?= length srcs
                     let originals = map parseOrDie srcs
-                    let reParsed  = map parseOrDie rendered
+                        reParsed  = map parseOrDie rendered
                     originals @?= reParsed
     ]
 

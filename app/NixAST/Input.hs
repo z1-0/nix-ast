@@ -3,8 +3,7 @@ module NixAST.Input
     , InputMode (..)
     , readBytes
     , inputMode
-    , fromInput
-    , fromStdin
+    , stdinInput
     , fromExpr
     , fromJSON
     ) where
@@ -14,25 +13,18 @@ import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import System.IO (hIsTerminalDevice, stdin)
 
-data InputMode = RawNix | JSON | ArrayInput
+data InputMode = RawNix | JSON | BatchJSON
 
 data Input = Input
     { readBytes :: IO BL.ByteString
     , inputMode :: InputMode
     }
 
-fromInput :: FilePath -> Input
-fromInput path =
-    Input
-        { readBytes = BL.readFile path
-        , inputMode = ArrayInput
-        }
-
-fromStdin :: IO BL.ByteString -> Input
-fromStdin onTty =
+stdinInput :: IO BL.ByteString -> Input
+stdinInput onTty =
     Input
         { readBytes = checkTty onTty BL.getContents
-        , inputMode = ArrayInput
+        , inputMode = BatchJSON
         }
   where
     checkTty fallback action = do

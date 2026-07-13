@@ -10,6 +10,6 @@ main = do
     hSetEncoding stdout utf8
     hSetEncoding stderr utf8
     execParser opts >>= \case
-        Eval input out -> runEval input out
-        Parse input out -> runParse input out
-        Render input out -> runRender input out
+        Eval input -> runEval input
+        Parse input -> runParse input
+        Render input outDir -> runRender input outDir

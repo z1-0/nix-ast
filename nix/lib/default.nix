@@ -9,54 +9,45 @@ let
 in
 
 {
-  inherit
-    match
-    syntax
-    traversal
-    ;
+  inherit match syntax traversal;
 
-  # Parse .nix files into AST values.
-  # Returns: [AST], one per input path, same order.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  # parse :: pkgs -> [Path] -> [AST]
-  parse =
-    pkgs: srcs:
-    let
-      json = pkgs.runCommand "nix-ast-parse" {
-        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } "nix-ast parse --input ${pkgs.writeText "serialize.json" (builtins.toJSON srcs)} --output $out";
-    in
-    builtins.fromJSON (builtins.readFile json);
-
-  # Render ASTs to importable .nix files (named <n>.nix by index).
-  # Returns: [Path], one store path per AST, same order.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  # render :: pkgs -> [AST] -> [Path]
-  render =
-    pkgs: asts:
-    let
-      dir = pkgs.runCommand "nix-ast-render" {
-        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } ''
-        mkdir -p $out
-        nix-ast render --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out
-      '';
-      n = builtins.length asts;
-    in
-    map (i: "${dir}/${toString i}.nix") (builtins.genList (x: x) n);
-
-  # Evaluate ASTs to Nix values (JSON-serializable only; functions/derivations error).
-  # Returns: [Any], one value per AST, same order.
-  # NOTE: This is an IFD (Import From Derivation) function.
-  # eval :: pkgs -> [AST] -> [Any]
+  # Evaluate ASTs to Nix values.
+  # Only JSON-serializable values are supported; functions and derivations error.
+  # NOTE: IFD (Import From Derivation).
+  # eval :: pkgs -> [AST] -> [a]
   eval =
     pkgs: asts:
     let
       json = pkgs.runCommand "nix-ast-eval" {
         nativeBuildInputs = [ (nix-ast-cli pkgs) ];
-      } "nix-ast eval --input ${pkgs.writeText "serialize.json" (builtins.toJSON asts)} --output $out";
+      } "nix-ast eval < ${pkgs.writeText "asts.json" (builtins.toJSON asts)} > $out";
     in
     builtins.fromJSON (builtins.readFile json);
+
+  # Parse .nix files into AST values.
+  # NOTE: IFD (Import From Derivation).
+  # parse :: pkgs -> [Path] -> [AST]
+  parse =
+    pkgs: paths:
+    let
+      json = pkgs.runCommand "nix-ast-parse" {
+        nativeBuildInputs = [ (nix-ast-cli pkgs) ];
+      } "nix-ast parse < ${pkgs.writeText "paths.json" (builtins.toJSON paths)} > $out";
+    in
+    builtins.fromJSON (builtins.readFile json);
+
+  # Render ASTs to importable .nix files (named <n>.nix by index).
+  # NOTE: IFD (Import From Derivation).
+  # render :: pkgs -> [AST] -> [Path]
+  render =
+    pkgs: asts:
+    let
+      dir = pkgs.runCommand "nix-ast-render" { nativeBuildInputs = [ (nix-ast-cli pkgs) ]; } ''
+        mkdir -p $out
+        nix-ast render --out-dir $out < ${pkgs.writeText "serialize.json" (builtins.toJSON asts)}
+      '';
+    in
+    lib.imap0 (i: _: "${dir}/${toString i}.nix") asts;
 
   # Convert an AST to a Nix value (inverse of toAST).
   # A pure evaluation function — no IFD, runs entirely in Nix.
@@ -65,23 +56,22 @@ in
   fromAST =
     ast:
     let
-      go = node:
+      go =
+        node:
         match node {
           Constant = { contents, ... }:
             match contents {
               Int = { contents, ... }: contents;
               Float = { contents, ... }: contents;
               Bool = { contents, ... }: contents;
-              Null = _: null;
               Uri = { contents, ... }: contents;
+              Null = _: null;
               _ = _: throw "fromAST: unsupported atom type '${contents.tag}'";
             };
           Str = { contents, ... }:
             match contents {
-              DoubleQuoted = { contents, ... }:
-                builtins.concatStringsSep "" (map textFromPart contents);
-              Indented = { parts, ... }:
-                builtins.concatStringsSep "" (map textFromPart parts);
+              DoubleQuoted = { contents, ... }: builtins.concatStringsSep "" (map textFromPart contents);
+              Indented = { parts, ... }: builtins.concatStringsSep "" (map textFromPart parts);
             };
           EnvPath = { contents, ... }: contents;
           LiteralPath = { contents, ... }: contents;
@@ -90,34 +80,52 @@ in
             if recursive then
               throw "fromAST: cannot convert recursive set to Nix value"
             else
-              lib.listToAttrs (lib.concatMap (binding: match binding {
-                NamedVar = { attrPath, value, ... }:
-                  [{ name = keyFromKeyName (builtins.head attrPath); value = go value; }];
-                Inherit = { scope, names, ... }:
-                  if scope == null then
-                    throw "fromAST: plain inherit (without scope) is not supported"
-                  else
-                    let scopeVal = go scope;
-                    in map (name: { inherit name; value = scopeVal.${name}; }) names;
-              }) bindings);
+              lib.listToAttrs (
+                lib.concatMap (
+                  binding:
+                  match binding {
+                    NamedVar = { attrPath, value, ... }:
+                      [
+                        {
+                          name = keyFromKeyName (builtins.head attrPath);
+                          value = go value;
+                        }
+                      ];
+                    Inherit = { scope, names, ... }:
+                      if scope == null then
+                        throw "fromAST: plain inherit (without scope) is not supported"
+                      else
+                        let
+                          scopeVal = go scope;
+                        in
+                        map (name: {
+                          inherit name;
+                          value = scopeVal.${name};
+                        }) names;
+                  }
+                ) bindings
+              );
           _ = _: throw "fromAST: unsupported AST node '${node.tag}'";
         };
 
-      textFromPart = part: match part {
-        Plain = { contents, ... }:
-          if builtins.isString contents then contents
-          else go contents;
-        Antiquoted = { contents, ... }:
-          if builtins.isString contents then contents
-          else if syntax.isStr contents then go contents
-          else throw "fromAST: string interpolation only supports Str nodes or plain text";
-        EscapedNewline = _: "";
-      };
+      textFromPart = part:
+        match part {
+          Plain = { contents, ... }: if builtins.isString contents then contents else go contents;
+          Antiquoted = { contents, ... }:
+            if builtins.isString contents then
+              contents
+            else if syntax.isStr contents then
+              go contents
+            else
+              throw "fromAST: string interpolation only supports Str nodes or plain text";
+          EscapedNewline = _: "";
+        };
 
-      keyFromKeyName = keyName: match keyName {
-        StaticKey = { contents, ... }: contents;
-        DynamicKey = { contents, ... }: textFromPart contents;
-      };
+      keyFromKeyName = keyName:
+        match keyName {
+          StaticKey = { contents, ... }: contents;
+          DynamicKey = { contents, ... }: textFromPart contents;
+        };
     in
     go ast;
 
@@ -137,7 +145,8 @@ in
         else if isString v then syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain v) ])
         else if isPath v then syntax.mkLiteralPath (toString v)
         else if isList v then syntax.mkList (map go v)
-        else if isFunction v then throw "toAST: cannot convert function to AST"
+        else if isFunction v then
+          throw "toAST: cannot convert function to AST"
         else if isAttrs v then
           if v ? type && v.type == "derivation" then
             throw "toAST: cannot convert derivation to AST"

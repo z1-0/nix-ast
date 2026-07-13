@@ -1,27 +1,27 @@
 module NixAST.CLI (
     Command (..),
+    checkTty,
     opts,
     runParse,
     runRender,
     runEval,
 ) where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Data.Aeson (eitherDecode, encode)
 import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack, unpack)
-import Data.Text.Encoding (decodeUtf8)
+
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
 import NixAST
 import NixAST.Eval (evalAST, evalASTs)
-import NixAST.Input (Input, InputMode (..))
-import NixAST.Input qualified as Input
+import NixAST.Input (Input (..), InputMode (..), readInput)
 import Options.Applicative
 import Options.Applicative.Help (parserHelp, renderHelp)
 import Paths_nix_ast (version)
 import System.Exit (exitFailure)
-import System.IO (stderr)
+import System.IO (hIsTerminalDevice, stdin, stderr)
 
 data Command
     = Eval Input
@@ -46,10 +46,10 @@ parseCommand =
         )
 
 parseOpt :: Parser Input
-parseOpt = exprOpt <|> pure (Input.stdinInput showParseHelp)
+parseOpt = exprOpt <|> pure (FromStdin BatchJSON)
   where
     exprOpt =
-        Input.fromExpr
+        FromArg RawNix
             <$> strOption
                 ( long "expr"
                     <> metavar "EXPR"
@@ -57,10 +57,10 @@ parseOpt = exprOpt <|> pure (Input.stdinInput showParseHelp)
                 )
 
 renderOpt :: Parser Input
-renderOpt = jsonOpt <|> pure (Input.stdinInput showRenderHelp)
+renderOpt = jsonOpt <|> pure (FromStdin BatchJSON)
   where
     jsonOpt =
-        Input.fromJSON
+        FromArg JSON
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
@@ -68,10 +68,10 @@ renderOpt = jsonOpt <|> pure (Input.stdinInput showRenderHelp)
                 )
 
 evalOpt :: Parser Input
-evalOpt = jsonOpt <|> pure (Input.stdinInput showEvalHelp)
+evalOpt = jsonOpt <|> pure (FromStdin BatchJSON)
   where
     jsonOpt =
-        Input.fromJSON
+        FromArg JSON
             <$> strOption
                 ( long "json"
                     <> metavar "JSON"
@@ -103,16 +103,27 @@ opts =
             <> header "nix-ast - Nix AST tool"
         )
 
+checkTty :: Command -> IO ()
+checkTty cmd = do
+    isTty <- hIsTerminalDevice stdin
+    when isTty $ case cmd of
+        Parse (FromStdin _) -> showSubcommandHelp parseInfo
+        Render (FromStdin _) _ -> showSubcommandHelp renderInfo
+        Eval (FromStdin _) -> showSubcommandHelp evalInfo
+        _ -> pure ()
+
+showSubcommandHelp :: ParserInfo a -> IO b
+showSubcommandHelp p = do
+    TIO.hPutStrLn stderr $ pack $ renderHelp 80 (parserHelp defaultPrefs (infoParser p))
+    exitFailure
+
 runParse :: Input -> IO ()
-runParse input = case Input.inputMode input of
-    RawNix -> do
-        bs <- Input.readBytes input
-        let txt = decodeUtf8 (BL.toStrict bs)
-        case nixToJSON txt of
-            Left err -> die ("Parse error: " <> err)
-            Right json -> BL.putStr (json <> "\n")
-    BatchJSON -> do
-        bs <- Input.readBytes input
+runParse input = case input of
+    FromArg RawNix txt -> case nixToJSON txt of
+        Left err -> die ("Parse error: " <> err)
+        Right json -> BL.putStr (json <> "\n")
+    FromStdin _ -> do
+        bs <- BL.getContents
         case eitherDecode @[Text] bs of
             Left err -> die (pack err)
             Right paths -> do
@@ -128,16 +139,17 @@ runParse input = case Input.inputMode input of
 
 runRender :: Input -> Maybe FilePath -> IO ()
 runRender input outDir = do
-    bs <- Input.readBytes input
-    case (Input.inputMode input, outDir) of
-        (JSON, Nothing) -> do
+    bs <- readInput input
+    case (input, outDir) of
+        (FromArg JSON _, Nothing) -> do
             case eitherDecode @Expr bs of
                 Left err -> die (pack err)
                 Right expr -> case fromExpr expr of
                     Left err -> die err
                     Right nExpr -> TIO.putStrLn (renderNix nExpr)
-        (JSON, Just _) -> die "--out-dir is not supported with --json; use --json to render a single AST to stdout"
-        (BatchJSON, Nothing) -> do
+        (FromArg JSON _, Just _) ->
+            die "--out-dir is not supported with --json; use --json to render a single AST to stdout"
+        (FromStdin _, Nothing) -> do
             case eitherDecode @[Expr] bs of
                 Left err -> die (pack err)
                 Right asts -> do
@@ -145,7 +157,7 @@ runRender input outDir = do
                     case sequence results of
                         Left err -> die err
                         Right nExprs -> BL.putStr (encode (map renderNix nExprs) <> "\n")
-        (BatchJSON, Just dir) -> do
+        (FromStdin _, Just dir) -> do
             case eitherDecode @[Expr] bs of
                 Left err -> die (pack err)
                 Right asts ->
@@ -156,40 +168,26 @@ runRender input outDir = do
         _ -> die "render expects --json JSON or stdin with JSON array of ASTs"
 
 runEval :: Input -> IO ()
-runEval input = case Input.inputMode input of
-    JSON -> do
-        bs <- Input.readBytes input
-        case eitherDecode @Expr bs of
-            Left err -> die (pack err)
-            Right expr -> do
-                result <- evalAST expr
-                case result of
-                    Left err -> die err
-                    Right json -> BL.putStr (json <> "\n")
-    BatchJSON -> do
-        bs <- Input.readBytes input
-        case eitherDecode @[Expr] bs of
-            Left err -> die (pack err)
-            Right exprs -> do
-                result <- evalASTs exprs
-                case result of
-                    Left err -> die err
-                    Right json -> BL.putStr (json <> "\n")
-    _ -> die "eval expects --json JSON or stdin with JSON array of ASTs"
+runEval input = do
+    bs <- readInput input
+    case input of
+        FromArg JSON _ -> do
+            case eitherDecode @Expr bs of
+                Left err -> die (pack err)
+                Right expr -> do
+                    result <- evalAST expr
+                    case result of
+                        Left err -> die err
+                        Right json -> BL.putStr (json <> "\n")
+        FromStdin _ -> do
+            case eitherDecode @[Expr] bs of
+                Left err -> die (pack err)
+                Right exprs -> do
+                    result <- evalASTs exprs
+                    case result of
+                        Left err -> die err
+                        Right json -> BL.putStr (json <> "\n")
+        _ -> die "eval expects --json JSON or stdin with JSON array of ASTs"
 
 die :: Text -> IO a
 die err = TIO.hPutStrLn stderr ("Error: " <> err) >> exitFailure
-
-showParseHelp :: IO a
-showParseHelp = showSubcommandHelp parseInfo
-
-showRenderHelp :: IO a
-showRenderHelp = showSubcommandHelp renderInfo
-
-showEvalHelp :: IO a
-showEvalHelp = showSubcommandHelp evalInfo
-
-showSubcommandHelp :: ParserInfo Command -> IO a
-showSubcommandHelp p = do
-    TIO.hPutStrLn stderr $ pack $ renderHelp 80 (parserHelp defaultPrefs (infoParser p))
-    exitFailure

@@ -58,7 +58,7 @@ executable nix-ast
   hs-source-dirs: app
   other-modules:
     NixAST.CLI
-    NixAST.Input
+    NixAST.Run
     Paths_nix_ast
 
   build-depends:

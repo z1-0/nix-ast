@@ -1,10 +1,10 @@
-module NixAST.Parser (appInfo, warnOnTty) where
+module Parser (appInfo, warnOnTty) where
 
+import Command (Command (..))
 import Control.Monad (when)
 import Data.Text (Text, pack)
 import Data.Text.IO qualified as TIO
 import Data.Version (showVersion)
-import NixAST.Command (Command (..))
 import Options.Applicative
 import Options.Applicative.Help (parserHelp, renderHelp)
 import Paths_nix_ast (version)

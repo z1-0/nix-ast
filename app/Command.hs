@@ -1,4 +1,4 @@
-module NixAST.Command (Command (..)) where
+module Command (Command (..)) where
 
 import Data.Text (Text)
 

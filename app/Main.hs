@@ -1,7 +1,7 @@
 module Main (main) where
 
-import NixAST.Exec (exec)
-import NixAST.Parser (appInfo, warnOnTty)
+import Exec (exec)
+import Parser (appInfo, warnOnTty)
 import Options.Applicative (execParser)
 import System.IO (hSetEncoding, stderr, stdin, stdout, utf8)
 

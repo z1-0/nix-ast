@@ -1,19 +1,19 @@
-module NixAST.Exec (exec) where
+module Exec (exec) where
 
-import Control.Concurrent (newQSem, signalQSem, waitQSem)
-import Control.Concurrent.Async (mapConcurrently)
-import Control.Exception (bracket_)
-import Control.Monad (forM_)
-import Data.Aeson (FromJSON, eitherDecode, encode)
-import Data.ByteString.Lazy qualified as BL
-import Data.Text (Text, pack, unpack)
-import Data.Text.Encoding (encodeUtf8)
-import Data.Text.IO qualified as TIO
+import Command                     (Command (..))
+import Control.Concurrent          (newQSem, signalQSem, waitQSem)
+import Control.Concurrent.Async    (mapConcurrently)
+import Control.Exception           (bracket_)
+import Control.Monad               (forM_)
+import Data.Aeson                  (FromJSON, eitherDecode, encode)
+import Data.ByteString.Lazy        qualified as BL
+import Data.Text                   (Text, pack, unpack)
+import Data.Text.Encoding          (encodeUtf8)
+import Data.Text.IO                qualified as TIO
 import NixAST
-import NixAST.Command (Command (..))
-import NixAST.Eval (evalAST, evalASTs)
-import System.Exit (exitFailure)
-import System.IO (stderr)
+import NixAST.Eval                 (evalAST, evalASTs)
+import System.Exit                 (exitFailure)
+import System.IO                   (stderr)
 
 data AppError
     = ConvErr   Text

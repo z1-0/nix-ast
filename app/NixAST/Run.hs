@@ -1,5 +1,8 @@
 module NixAST.Run (runCommand) where
 
+import Control.Concurrent.Async     (mapConcurrently)
+import Control.Concurrent           (newQSem, signalQSem, waitQSem)
+import Control.Exception            (bracket_)
 import Control.Monad                (forM_)
 import Data.Aeson                   (FromJSON, eitherDecode, encode)
 import Data.ByteString.Lazy         qualified as BL
@@ -47,7 +50,8 @@ runParse (Just expr) =
         Right out -> BL.putStr (out <> "\n")
 runParse Nothing = do
     paths <- getStdinJSON @Text
-    asts  <- traverse parseFile paths
+    sem   <- newQSem 50
+    asts  <- mapConcurrently (bracket_ (waitQSem sem) (signalQSem sem) . parseFile) paths
     BL.putStr (encode asts <> "\n")
   where
     parseFile path = do

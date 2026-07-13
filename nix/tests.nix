@@ -1,7 +1,7 @@
 { lib, pkgs }:
 let
   inherit (pkgs.lib.debug) runTests throwTestFailures;
-  inherit (lib) match syntax traversal toAST fromAST parse render eval;
+  inherit (lib) match syntax traversal eval parse render toAST fromAST;
 
   test = expr: expected: { inherit expr expected; };
   assertThrows = expr: test (!(builtins.tryEval expr).success) true;
@@ -10,48 +10,11 @@ let
 in
 throwTestFailures {
   failures = runTests {
-    testToAST_bool = test (toAST true) (syntax.mkBool true);
-    testToAST_int = test (toAST 42) (syntax.mkInt 42);
-    testToAST_float = test (toAST 3.14) (syntax.mkFloat 3.14);
-    testToAST_null = test (toAST null) syntax.mkNull;
-    testToAST_string = test (toAST "hi") (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]));
-    testToAST_list = test (toAST [ 1 "a" ]) (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ])) ]);
-    testToAST_function = assertThrows (toAST (x: x));
-    testToAST_attrset = test (toAST { x = 1; }) (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ]);
-
-    testFromAST_int = test (fromAST (syntax.mkInt 42)) 42;
-    testFromAST_float = test (fromAST (syntax.mkFloat 3.14)) 3.14;
-    testFromAST_bool = test (fromAST (syntax.mkBool true)) true;
-    testFromAST_null = test (fromAST syntax.mkNull) null;
-    testFromAST_string = test (fromAST (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]))) "hi";
-    testFromAST_list = test (fromAST (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ])) ])) [ 1 "a" ];
-    testFromAST_set = test (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ])) { x = 1; };
-    testFromAST_recursiveSet = assertThrows (fromAST (syntax.mkSet true []));
-
-    testEval_int = test (builtins.head (eval pkgs [ (syntax.mkInt 42) ])) 42;
-    testEval_bool = test (builtins.head (eval pkgs [ (syntax.mkBool true) ])) true;
-
+    # --- Match ---
     testMatch_exact = test (match (syntax.mkSym "x") { Sym = n: n.contents; }) "x";
     testMatch_wildcard = test (match syntax.mkNull { _ = n: n.tag; }) "Constant";
     testMatch_nonNode = assertThrows (match { } { _ = n: true; });
     testMatch_nonExhaustive = assertThrows (match (syntax.mkSym "x") { Int = n: n; });
-
-    testParse_flake = test (match flakeAST { Set = _: true; _ = _: false; }) true;
-    testRoundtrip_simple =
-      let
-        src = "{ a = 1; b = 2; }";
-        srcFile = pkgs.writeText "test.nix" src;
-        ast = builtins.head (parse pkgs [ srcFile ]);
-        rendered = builtins.head (render pkgs [ ast ]);
-      in test src (builtins.readFile rendered);
-
-    testParse_count = test (builtins.length (parse pkgs [ ../flake.nix ../flake.nix ])) 2;
-    testParse_content = test (builtins.head (parse pkgs [ ../flake.nix ])) flakeAST;
-    testRender_returnsList = test (builtins.isList (render pkgs [ flakeAST ])) true;
-    testRender_pathsAreStrings =
-      let files = render pkgs [ flakeAST flakeAST ];
-      in test (builtins.all builtins.isString files) true;
-    testRender_twoAsts = test (builtins.length (render pkgs [ flakeAST flakeAST ])) 2;
 
     # --- Traversal: children/rebuild contract ---
     # rebuild node (children node) == node for various node types
@@ -85,5 +48,50 @@ throwTestFailures {
     testTraversal_hasAttr =
       let node = syntax.mkHasAttr (syntax.mkSym "x") [ (syntax.mkStaticKey "y") ];
       in test (traversal.rebuild node (traversal.children node)) node;
+
+    # --- Eval ---
+    testEval_int = test (builtins.head (eval pkgs [ (syntax.mkInt 42) ])) 42;
+    testEval_bool = test (builtins.head (eval pkgs [ (syntax.mkBool true) ])) true;
+
+    # --- Parse ---
+    testParse_flake = test (match flakeAST { Set = _: true; _ = _: false; }) true;
+    testParse_count = test (builtins.length (parse pkgs [ ../flake.nix ../flake.nix ])) 2;
+    testParse_content = test (builtins.head (parse pkgs [ ../flake.nix ])) flakeAST;
+
+    # --- toAST: Nix value → AST ---
+    testToAST_bool = test (toAST true) (syntax.mkBool true);
+    testToAST_int = test (toAST 42) (syntax.mkInt 42);
+    testToAST_float = test (toAST 3.14) (syntax.mkFloat 3.14);
+    testToAST_null = test (toAST null) syntax.mkNull;
+    testToAST_string = test (toAST "hi") (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]));
+    testToAST_list = test (toAST [ 1 "a" ]) (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ])) ]);
+    testToAST_function = assertThrows (toAST (x: x));
+    testToAST_attrset = test (toAST { x = 1; }) (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ]);
+
+    # --- Render ---
+    testRender_returnsList = test (builtins.isList (render pkgs [ flakeAST ])) true;
+    testRender_pathsAreStrings =
+      let files = render pkgs [ flakeAST flakeAST ];
+      in test (builtins.all builtins.isString files) true;
+    testRender_twoAsts = test (builtins.length (render pkgs [ flakeAST flakeAST ])) 2;
+
+    # Roundtrip: parse → render
+    testRoundtrip_simple =
+      let
+        src = "{ a = 1; b = 2; }";
+        srcFile = pkgs.writeText "test.nix" src;
+        ast = builtins.head (parse pkgs [ srcFile ]);
+        rendered = builtins.head (render pkgs [ ast ]);
+      in test src (builtins.readFile rendered);
+
+    # --- fromAST: AST → Nix value ---
+    testFromAST_int = test (fromAST (syntax.mkInt 42)) 42;
+    testFromAST_float = test (fromAST (syntax.mkFloat 3.14)) 3.14;
+    testFromAST_bool = test (fromAST (syntax.mkBool true)) true;
+    testFromAST_null = test (fromAST syntax.mkNull) null;
+    testFromAST_string = test (fromAST (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "hi") ]))) "hi";
+    testFromAST_list = test (fromAST (syntax.mkList [ (syntax.mkInt 1) (syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") ])) ])) [ 1 "a" ];
+    testFromAST_set = test (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ])) { x = 1; };
+    testFromAST_recursiveSet = assertThrows (fromAST (syntax.mkSet true []));
   };
 }

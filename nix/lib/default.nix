@@ -49,6 +49,36 @@ in
     in
     lib.imap0 (i: _: "${dir}/${toString i}.nix") asts;
 
+  # Convert a Nix value to its AST (recurses into attrsets and lists).
+  # Functions and derivations will raise an error.
+  # toAST :: a -> AST
+  toAST =
+    value:
+    let
+      go =
+        v:
+        with builtins;
+        if isBool v then syntax.mkBool v
+        else if isInt v then syntax.mkInt v
+        else if isFloat v then syntax.mkFloat v
+        else if isNull v then syntax.mkNull
+        else if isString v then syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain v) ])
+        else if isPath v then syntax.mkLiteralPath (toString v)
+        else if isList v then syntax.mkList (map go v)
+        else if isFunction v then
+          throw "toAST: cannot convert function to AST"
+        else if isAttrs v then
+          if v ? type && v.type == "derivation" then
+            throw "toAST: cannot convert derivation to AST"
+          else
+            syntax.mkSet false (
+              lib.mapAttrsToList (name: val: syntax.mkNamedVar [ (syntax.mkStaticKey name) ] (go val)) v
+            )
+        else
+          throw "toAST: unsupported Nix type";
+    in
+    go value;
+
   # Convert an AST to a Nix value (inverse of toAST).
   # A pure evaluation function — no IFD, runs entirely in Nix.
   # Paths are returned as strings; interpolation only supports Str nodes or plain text.
@@ -86,10 +116,7 @@ in
                   match binding {
                     NamedVar = { attrPath, value, ... }:
                       [
-                        {
-                          name = keyFromKeyName (builtins.head attrPath);
-                          value = go value;
-                        }
+                        { name = keyFromKeyName (builtins.head attrPath); value = go value; }
                       ];
                     Inherit = { scope, names, ... }:
                       if scope == null then
@@ -128,34 +155,4 @@ in
         };
     in
     go ast;
-
-  # Convert a Nix value to its AST (recurses into attrsets and lists).
-  # Functions and derivations will raise an error.
-  # toAST :: a -> AST
-  toAST =
-    value:
-    let
-      go =
-        v:
-        with builtins;
-        if isBool v then syntax.mkBool v
-        else if isInt v then syntax.mkInt v
-        else if isFloat v then syntax.mkFloat v
-        else if isNull v then syntax.mkNull
-        else if isString v then syntax.mkStr (syntax.mkDoubleQuoted [ (syntax.mkPlain v) ])
-        else if isPath v then syntax.mkLiteralPath (toString v)
-        else if isList v then syntax.mkList (map go v)
-        else if isFunction v then
-          throw "toAST: cannot convert function to AST"
-        else if isAttrs v then
-          if v ? type && v.type == "derivation" then
-            throw "toAST: cannot convert derivation to AST"
-          else
-            syntax.mkSet false (
-              lib.mapAttrsToList (name: val: syntax.mkNamedVar [ (syntax.mkStaticKey name) ] (go val)) v
-            )
-        else
-          throw "toAST: unsupported Nix type";
-    in
-    go value;
 }

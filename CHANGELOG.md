@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0](https://github.com/z1-0/nix-ast/compare/v0.5.0...v0.6.0) (2026-07-14)
+
+
+### Features
+
+* add eval command for evaluating Nix AST to JSON ([f17c504](https://github.com/z1-0/nix-ast/commit/f17c504a719b96002ca706f9d461532e62dd870b))
+* add parse-batch and render-batch commands ([ea45eea](https://github.com/z1-0/nix-ast/commit/ea45eea46bcb5cafa97666f53248588d2fa50d0e))
+
+
+### Bug Fixes
+
+* add Paths_nix_ast to executable other-modules in cabal file ([cd07460](https://github.com/z1-0/nix-ast/commit/cd07460cb123339eeffa54aadbe277e11723beee))
+* **parse:** restore concurrent file I/O with async for batch parse ([8716612](https://github.com/z1-0/nix-ast/commit/87166122ee28da612ae8e691f08fd9ed47d5b66a))
+* remove hnix reference from binary closure via remove-references-to ([789c60a](https://github.com/z1-0/nix-ast/commit/789c60a906a18e02305cab8855538d71bab9af3e))
+* remove redundant 'Single' from help text ([09f62b6](https://github.com/z1-0/nix-ast/commit/09f62b613deb2f9874e8b3890f74c528e7c65d1a))
+
+
+### Performance Improvements
+
+* add file I/O concurrency for parse-batch ([9d0e67b](https://github.com/z1-0/nix-ast/commit/9d0e67b8ce032ba8ecce04a9d96ee421431cbe88))
+
 ## [0.5.0](https://github.com/z1-0/nix-ast/compare/v0.4.0...v0.5.0) (2026-07-08)
 
 

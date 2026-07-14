@@ -47,7 +47,7 @@ builtins.map
 
 ## Related
 
-- [VarName](./../var-name.md) — the underlying type
+- [VarName](./../var-name.md): the underlying type
 
 ## Nix Library Access
 

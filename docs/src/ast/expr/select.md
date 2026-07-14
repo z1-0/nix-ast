@@ -67,8 +67,8 @@ set.a.b.c or 0
 
 ## Related
 
-- [AttrPath](./../attr-path.md) — attribute path structure
-- [HasAttr](./has-attr.md) — check if attribute exists
+- [AttrPath](./../attr-path.md): attribute path structure
+- [HasAttr](./has-attr.md): check if attribute exists
 
 ## Nix Library Access
 

@@ -11,7 +11,7 @@
 
 `String` represents the contents of a string literal (not the expression wrapper). The expression-level node is `Str` which wraps a `String`.
 
-String parts are `Antiquoted Text` — either `Plain` text, `Antiquoted` expressions, or `EscapedNewline` (indented strings only).
+String parts are `Antiquoted Text`: either `Plain` text, `Antiquoted` expressions, or `EscapedNewline` (indented strings only).
 
 ## Pages
 
@@ -22,14 +22,14 @@ String parts are `Antiquoted Text` — either `Plain` text, `Antiquoted` express
 
 See [Antiquoted](../antiquoted/README.md) for:
 
-- `Plain` — literal text
-- `Antiquoted` — embedded expression `${...}`
-- `EscapedNewline` — `\` newline in indented strings
+- `Plain`: literal text
+- `Antiquoted`: embedded expression `${...}`
+- `EscapedNewline`: `\` newline in indented strings
 
 ## Related
 
-- [Str](../expr/str.md) — expression wrapper
-- [Antiquoted](../antiquoted/README.md) — string parts
+- [Str](../expr/str.md): expression wrapper
+- [Antiquoted](../antiquoted/README.md): string parts
 
 ## Nix Library Access
 

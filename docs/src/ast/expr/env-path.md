@@ -42,7 +42,7 @@ EnvPath FilePath
 
 ## Related
 
-- [LiteralPath](./literal-path.md) — relative/absolute paths like `./foo.nix`
+- [LiteralPath](./literal-path.md): relative/absolute paths like `./foo.nix`
 
 ## Nix Library Access
 

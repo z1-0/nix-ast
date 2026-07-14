@@ -58,9 +58,9 @@ The expression-level node is `Str` wrapping this:
 
 ## Related
 
-- [Indented](./indented.md) — multi-line indented strings
-- [Antiquoted](../antiquoted/README.md) — `Plain`, `Antiquoted`, `EscapedNewline` parts
-- [Str](../expr/str.md) — expression wrapper
+- [Indented](./indented.md): multi-line indented strings
+- [Antiquoted](../antiquoted/README.md): `Plain`, `Antiquoted`, `EscapedNewline` parts
+- [Str](../expr/str.md): expression wrapper
 
 ## Nix Library Access
 

@@ -51,8 +51,8 @@ set ? a.b.c
 
 ## Related
 
-- [AttrPath](./../attr-path.md) — attribute path structure
-- [Select](./select.md) — attribute selection (with default)
+- [AttrPath](./../attr-path.md): attribute path structure
+- [Select](./select.md): attribute selection (with default)
 
 ## Nix Library Access
 

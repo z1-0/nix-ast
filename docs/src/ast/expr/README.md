@@ -51,46 +51,46 @@ Expr
 
 ### Primitive Expressions
 
-- [SynHole](./syn-hole.md) — syntax hole (nix-ast specific)
-- [EnvPath](./env-path.md) — `<nixpkgs>` search path
-- [LiteralPath](./literal-path.md) — `./foo.nix` path
-- [HasAttr](./has-attr.md) — `set ? attr` check
+- [SynHole](./syn-hole.md): syntax hole (nix-ast specific)
+- [EnvPath](./env-path.md): `<nixpkgs>` search path
+- [LiteralPath](./literal-path.md): `./foo.nix` path
+- [HasAttr](./has-attr.md): `set ? attr` check
 
 ### Function & Application
 
-- [Abs](./abs.md) — lambda abstraction
-- [App](./app.md) — function application
+- [Abs](./abs.md): lambda abstraction
+- [App](./app.md): function application
 
 ### Control Flow
 
-- [Assert](./assert.md) — assertion
-- [If](./if.md) — conditional
+- [Assert](./assert.md): assertion
+- [If](./if.md): conditional
 
 ### Data Structures
 
-- [List](./list.md) — list literal
-- [Set](./set.md) — attribute set
-- [Select](./select.md) — attribute selection
+- [List](./list.md): list literal
+- [Set](./set.md): attribute set
+- [Select](./select.md): attribute selection
 
 ### Bindings & Scope
 
-- [Let](./let.md) — local bindings
-- [With](./with.md) — bring set into scope
+- [Let](./let.md): local bindings
+- [With](./with.md): bring set into scope
 
 ### Operations
 
-- [Binary](./binary.md) — binary operators
-- [Unary](./unary.md) — unary operators
+- [Binary](./binary.md): binary operators
+- [Unary](./unary.md): unary operators
 
 ### References & Constants
 
-- [Sym](./sym.md) — variable reference
-- [Constant](./constant.md) — atom wrapper
-- [Str](./str.md) — string expression
+- [Sym](./sym.md): variable reference
+- [Constant](./constant.md): atom wrapper
+- [Str](./str.md): string expression
 
 ## See Also
 
-- [Operators](../operators.md) — Binary and unary operator reference
-- [Atom](../atom/README.md) — constant values
-- [Binding](../binding/README.md) — let/set bindings
-- [Params](../params/README.md) — function parameters
+- [Operators](../operators.md): Binary and unary operator reference
+- [Atom](../atom/README.md): constant values
+- [Binding](../binding/README.md): let/set bindings
+- [Params](../params/README.md): function parameters

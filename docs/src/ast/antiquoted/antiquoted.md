@@ -51,9 +51,9 @@ Antiquoted Expr
 
 ## Related
 
-- [Plain](./plain.md) — literal text
-- [EscapedNewline](./escaped-newline.md) — escaped newline
-- [String](../string/README.md) — containers
+- [Plain](./plain.md): literal text
+- [EscapedNewline](./escaped-newline.md): escaped newline
+- [String](../string/README.md): containers
 
 ## Nix Library Access
 

@@ -2,7 +2,7 @@
 
 ## Description
 
-`VarName` represents identifiers in Nix code — variable names, attribute names, parameter names, etc.
+`VarName` represents identifiers in Nix code: variable names, attribute names, parameter names, etc.
 
 ## Nix Source ↔ AST
 
@@ -16,11 +16,11 @@ myVariable
 
 Used as the `contents` field of:
 
-- `Sym` — variable references
-- `Param` — function parameters
-- `StaticKey` — static attribute keys
-- `Inherit` — inherited names
-- `ParamSet` — parameter set parameter names
+- `Sym`: variable references
+- `Param`: function parameters
+- `StaticKey`: static attribute keys
+- `Inherit`: inherited names
+- `ParamSet`: parameter set parameter names
 
 ## Related
 

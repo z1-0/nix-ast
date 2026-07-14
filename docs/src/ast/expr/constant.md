@@ -53,7 +53,7 @@ null
 
 ## Related
 
-- [Atom](../atom/README.md) — the wrapped atomic types (Int, Float, Bool, Null, Uri)
+- [Atom](../atom/README.md): the wrapped atomic types (Int, Float, Bool, Null, Uri)
 - See [Atoms](../atom/README.md) for atom constructors
 
 ## Nix Library Access

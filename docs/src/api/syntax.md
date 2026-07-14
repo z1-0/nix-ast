@@ -1,4 +1,4 @@
-# syntax — Constructors & Predicates
+# syntax: Constructors & Predicates
 
 Type-checked node builders and tag predicates. All constructors validate their arguments at runtime.
 

@@ -14,7 +14,7 @@ DynamicKey (Antiquoted String)
 
 ## Description
 
-`DynamicKey` is used for attribute keys that are not static identifiers — either quoted strings like `"foo bar"` or antiquoted expressions like `${name}`. In Nix, any key in quotes or with antiquotation is parsed as a `DynamicKey`.
+`DynamicKey` is used for attribute keys that are not static identifiers: either quoted strings like `"foo bar"` or antiquoted expressions like `${name}`. In Nix, any key in quotes or with antiquotation is parsed as a `DynamicKey`.
 
 The contents is an `Antiquoted String`, meaning it can be:
 
@@ -63,10 +63,10 @@ let name = "foo"; in { ${name} = 1; }
 
 ## Related
 
-- [StaticKey](./static-key.md) — static identifier keys
-- [String](../string/README.md) — `DoubleQuoted` / `Indented` string nodes
-- [Antiquoted](../antiquoted/README.md) — string parts
-- [NamedVar](./../binding/named-var.md) — uses `AttrPath` of `KeyName`
+- [StaticKey](./static-key.md): static identifier keys
+- [String](../string/README.md): `DoubleQuoted` / `Indented` string nodes
+- [Antiquoted](../antiquoted/README.md): string parts
+- [NamedVar](./../binding/named-var.md): uses `AttrPath` of `KeyName`
 
 ## Nix Library Access
 

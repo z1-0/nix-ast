@@ -61,8 +61,8 @@ Str String
 
 ## Related
 
-- [String](../string/README.md) — `DoubleQuoted` and `Indented` constructors
-- [Antiquoted](../antiquoted/README.md) — `Plain`, `Antiquoted`, `EscapedNewline` parts
+- [String](../string/README.md): `DoubleQuoted` and `Indented` constructors
+- [Antiquoted](../antiquoted/README.md): `Plain`, `Antiquoted`, `EscapedNewline` parts
 
 ## Nix Library Access
 

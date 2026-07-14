@@ -27,7 +27,7 @@ In nix-ast JSON AST, `Float` atoms appear wrapped in `Constant`:
 
 ## Related
 
-- [Constant](./../expr/constant.md) — wrapper for atoms in expressions
+- [Constant](./../expr/constant.md): wrapper for atoms in expressions
 
 ## Nix Library Access
 

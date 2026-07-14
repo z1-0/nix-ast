@@ -45,8 +45,8 @@ let x = 1; y = 2; in x + y
 
 ## Related
 
-- [Binding](../binding/README.md) — `Inherit` and `NamedVar` constructors
-- [With](./with.md) — similar but brings a set into scope
+- [Binding](../binding/README.md): `Inherit` and `NamedVar` constructors
+- [With](./with.md): similar but brings a set into scope
 
 ## Nix Library Access
 

@@ -24,7 +24,7 @@ The `VarName` identifies the hole for later substitution.
 
 ## Nix Source ↔ AST
 
-There is no direct Nix syntax for `SynHole` — it is constructed programmatically.
+There is no direct Nix syntax for `SynHole`: it is constructed programmatically.
 
 ```json
 {

@@ -31,7 +31,7 @@ In Nix, URIs are a distinct literal type (not strings). They are written without
 
 ## Related
 
-- [Constant](./../expr/constant.md) — wrapper for atoms in expressions
+- [Constant](./../expr/constant.md): wrapper for atoms in expressions
 
 ## Nix Library Access
 

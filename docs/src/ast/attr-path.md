@@ -35,9 +35,9 @@ foo.bar.baz
 
 Used as the `attrPath` field of:
 
-- `NamedVar` — binding left-hand side
-- `Select` — attribute selection
-- `HasAttr` — attribute existence check
+- `NamedVar`: binding left-hand side
+- `Select`: attribute selection
+- `HasAttr`: attribute existence check
 
 ## Related
 

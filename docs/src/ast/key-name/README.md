@@ -18,8 +18,8 @@
 
 ## Related
 
-- [AttrPath](../attr-path.md) — non-empty list of `KeyName`
-- [NamedVar](../binding/named-var.md) — uses `AttrPath`
+- [AttrPath](../attr-path.md): non-empty list of `KeyName`
+- [NamedVar](../binding/named-var.md): uses `AttrPath`
 - [VarName](../var-name.md)
 
 ## Nix Library Access

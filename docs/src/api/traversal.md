@@ -1,4 +1,4 @@
-# traversal — Tree Operations
+# traversal: Tree Operations
 
 All operations respect the **children/rebuild contract**: `rebuild node (children node) == node`.
 

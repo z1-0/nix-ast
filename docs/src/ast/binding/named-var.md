@@ -69,11 +69,11 @@ let name = "foo"; in { ${name} = 1; }
 
 ## Related
 
-- [Inherit](./inherit.md) — inherit binding
-- [AttrPath](./../attr-path.md) — attribute path structure
-- [KeyName](../key-name/README.md) — `StaticKey` / `DynamicKey`
-- [Let](./../expr/let.md) — let expressions
-- [Set](./../expr/set.md) — attribute sets
+- [Inherit](./inherit.md): inherit binding
+- [AttrPath](./../attr-path.md): attribute path structure
+- [KeyName](../key-name/README.md): `StaticKey` / `DynamicKey`
+- [Let](./../expr/let.md): let expressions
+- [Set](./../expr/set.md): attribute sets
 
 ## Nix Library Access
 

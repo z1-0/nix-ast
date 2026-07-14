@@ -8,9 +8,9 @@
 # API
 
 - [Core Functions](./api/core-functions.md)
-- [match — Pattern Matching](./api/match.md)
-- [syntax — Constructors & Predicates](./api/syntax.md)
-- [traversal — Tree Operations](./api/traversal.md)
+- [match: Pattern Matching](./api/match.md)
+- [syntax: Constructors & Predicates](./api/syntax.md)
+- [traversal: Tree Operations](./api/traversal.md)
 
 # AST
 

@@ -86,9 +86,9 @@ Indented { indent :: Int, parts :: [Antiquoted Text] }
 
 ## Related
 
-- [DoubleQuoted](./double-quoted.md) — standard strings
-- [Antiquoted](../antiquoted/README.md) — `Plain`, `Antiquoted`, `EscapedNewline` parts
-- [Str](../expr/str.md) — expression wrapper
+- [DoubleQuoted](./double-quoted.md): standard strings
+- [Antiquoted](../antiquoted/README.md): `Plain`, `Antiquoted`, `EscapedNewline` parts
+- [Str](../expr/str.md): expression wrapper
 
 ## Nix Library Access
 

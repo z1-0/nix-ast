@@ -19,8 +19,8 @@ Available commands:
 
 The CLI has three subcommands: `eval`, `parse`, `render`. Each operates in two modes:
 
-- **Direct mode** — supply input via `--expr` or `--json` flag for single-item operation
-- **Batch mode** — pipe a JSON array through stdin for bulk processing (one item per array element)
+- **Direct mode**: supply input via `--expr` or `--json` flag for single-item operation
+- **Batch mode**: pipe a JSON array through stdin for bulk processing (one item per array element)
 
 When stdin is a TTY and no direct flag is given, the CLI shows the subcommand's help text instead of hanging.
 

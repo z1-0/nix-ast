@@ -6,20 +6,20 @@ Functions for parsing, constructing, matching, and transforming Nix AST nodes.
 
 The API is organized into three conceptual layers:
 
-| Layer               | Functions                                   | Description                                              |
-| ------------------- | ------------------------------------------- | -------------------------------------------------------- |
-| **IFD bridge**      | `parse`, `render`, `eval`                   | Bridge to the Haskell parser/evaluator via Import From Derivation |
-| **Value conversion**| `toAST`, `fromAST`                          | Pure Nix conversion between Nix values and AST nodes    |
-| **AST tools**       | `match`, `syntax`, `traversal`              | Pattern matching, constructors, and tree operations      |
+| Layer                | Functions                      | Description                                                       |
+| -------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| **IFD bridge**       | `parse`, `render`, `eval`      | Bridge to the Haskell parser/evaluator via Import From Derivation |
+| **Value conversion** | `toAST`, `fromAST`             | Pure Nix conversion between Nix values and AST nodes              |
+| **AST tools**        | `match`, `syntax`, `traversal` | Pattern matching, constructors, and tree operations               |
 
 ## Pages
 
-| Page                                              | Description                                                |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| [Core Functions](./core-functions.md)             | `parse`, `render`, `eval`, `toAST`, `fromAST`              |
-| [syntax — Constructors & Predicates](./syntax.md) | `mk*` builders and `is*` tag checks for all node types     |
-| [match — Pattern Matching](./match.md)            | Type-safe tag dispatch with `match ast { ... }`            |
-| [traversal — Tree Operations](./traversal.md)     | `children`, `rebuild`, `transform`, `universe`, `contexts` |
+| Page                                             | Description                                                |
+| ------------------------------------------------ | ---------------------------------------------------------- |
+| [Core Functions](./core-functions.md)            | `parse`, `render`, `eval`, `toAST`, `fromAST`              |
+| [syntax: Constructors & Predicates](./syntax.md) | `mk*` builders and `is*` tag checks for all node types     |
+| [match: Pattern Matching](./match.md)            | Type-safe tag dispatch with `match ast { ... }`            |
+| [traversal: Tree Operations](./traversal.md)     | `children`, `rebuild`, `transform`, `universe`, `contexts` |
 
 ## How IFD Works
 

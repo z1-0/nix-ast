@@ -7,7 +7,7 @@
 | `Bool`      | `contents` | `Bool`    | Boolean value (`true`/`false`)             |
 | `Float`     | `contents` | `Float`   | Floating-point (not in Nix surface syntax) |
 | `Int`       | `contents` | `Integer` | 64-bit integer                             |
-| `Null`      | (none)     | —         | Null value                                 |
+| `Null`      | (none)     | -         | Null value                                 |
 | `Uri`       | `contents` | `Text`    | URI literal                                |
 
 ## Description
@@ -31,7 +31,7 @@ Atoms are the primitive constant values in Nix. They are always wrapped in a `Co
 
 ## Related
 
-- [Constant](../expr/constant.md) — expression wrapper for atoms
+- [Constant](../expr/constant.md): expression wrapper for atoms
 
 ## Nix Library Access
 

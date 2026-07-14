@@ -10,9 +10,9 @@ Plain v
 
 ## Fields
 
-| Field      | Type | Description                                                               |
-| ---------- | ---- | ------------------------------------------------------------------------- |
-| `contents` | `v`  | The literal value — `Text` in string parts, `String` node in `DynamicKey` |
+| Field      | Type | Description                                                              |
+| ---------- | ---- | ------------------------------------------------------------------------ |
+| `contents` | `v`  | The literal value: `Text` in string parts, `String` node in `DynamicKey` |
 
 ## Description
 
@@ -44,9 +44,9 @@ When used inside `DynamicKey` (as `Antiquoted String`), `Plain` wraps a `String`
 
 ## Related
 
-- [Antiquoted](./antiquoted.md) — embedded expression
-- [EscapedNewline](./escaped-newline.md) — escaped newline in indented strings
-- [String](../string/README.md) — `DoubleQuoted` / `Indented` containers
+- [Antiquoted](./antiquoted.md): embedded expression
+- [EscapedNewline](./escaped-newline.md): escaped newline in indented strings
+- [String](../string/README.md): `DoubleQuoted` / `Indented` containers
 
 ## Nix Library Access
 

@@ -14,7 +14,7 @@ StaticKey VarName
 
 ## Description
 
-`StaticKey` is used for bare identifier keys in attribute sets — keys that are valid Nix identifiers (alphanumeric + underscore, not starting with a digit). These are written without quotes.
+`StaticKey` is used for bare identifier keys in attribute sets: keys that are valid Nix identifiers (alphanumeric + underscore, not starting with a digit). These are written without quotes.
 
 ```nix
 { foo = 1; bar = 2; }  -- both are StaticKey
@@ -38,9 +38,9 @@ StaticKey VarName
 
 ## Related
 
-- [DynamicKey](./dynamic-key.md) — dynamic/computed keys
-- [VarName](./../var-name.md) — underlying type
-- [NamedVar](./../binding/named-var.md) — uses `AttrPath` of `KeyName`
+- [DynamicKey](./dynamic-key.md): dynamic/computed keys
+- [VarName](./../var-name.md): underlying type
+- [NamedVar](./../binding/named-var.md): uses `AttrPath` of `KeyName`
 
 ## Nix Library Access
 

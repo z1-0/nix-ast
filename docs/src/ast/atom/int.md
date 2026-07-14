@@ -42,7 +42,7 @@ Nix integers are 64-bit signed. The `Integer` type is arbitrary precision but va
 
 ## Related
 
-- [Constant](./../expr/constant.md) — wrapper for atoms in expressions
+- [Constant](./../expr/constant.md): wrapper for atoms in expressions
 
 ## Nix Library Access
 

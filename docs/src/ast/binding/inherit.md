@@ -45,9 +45,9 @@ inherit (pkgs) vim git;
 
 ## Related
 
-- [NamedVar](./named-var.md) — named variable binding
-- [Let](./../expr/let.md) — let expressions using bindings
-- [Set](./../expr/set.md) — attribute sets using bindings
+- [NamedVar](./named-var.md): named variable binding
+- [Let](./../expr/let.md): let expressions using bindings
+- [Set](./../expr/set.md): attribute sets using bindings
 
 ## Nix Library Access
 

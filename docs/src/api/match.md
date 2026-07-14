@@ -1,4 +1,4 @@
-# match — Pattern Matching
+# match: Pattern Matching
 
 Type-safe pseudo pattern matching on AST node tags.
 

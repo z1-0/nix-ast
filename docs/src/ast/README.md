@@ -8,18 +8,18 @@ The AST is a sum type with 19 expression constructors and supporting types for a
 
 ## Node Types
 
-| Type                                               | Description                                              |
-| -------------------------------------------------- | -------------------------------------------------------- |
-| [Expr](./expr/README.md)                           | The main expression tree — 19 constructors                |
-| [Atom](./atom/README.md)                           | Primitive constant values (Bool, Float, Int, Null, Uri)   |
-| [VarName](./var-name.md)                           | Identifier name (simple string)                            |
-| [AttrPath](./attr-path.md)                         | Non-empty list of `KeyName` for attribute paths           |
-| [Binding](./binding/README.md)                     | Left-hand side of attribute bindings (Inherit, NamedVar)  |
-| [KeyName](./key-name/README.md)                    | Attribute path components (StaticKey, DynamicKey)         |
-| [Operators](./operators.md)                        | Binary and unary operators                                |
-| [Params](./params/README.md)                       | Function parameter definitions (Param, ParamSet)          |
-| [String](./string/README.md)                       | String literal contents (DoubleQuoted, Indented)          |
-| [Antiquoted](./antiquoted/README.md)               | String parts with interpolation                           |
+| Type                                 | Description                                              |
+| ------------------------------------ | -------------------------------------------------------- |
+| [Expr](./expr/README.md)             | The main expression tree, with 19 constructors           |
+| [Atom](./atom/README.md)             | Primitive constant values (Bool, Float, Int, Null, Uri)  |
+| [VarName](./var-name.md)             | Identifier name (simple string)                          |
+| [AttrPath](./attr-path.md)           | Non-empty list of `KeyName` for attribute paths          |
+| [Binding](./binding/README.md)       | Left-hand side of attribute bindings (Inherit, NamedVar) |
+| [KeyName](./key-name/README.md)      | Attribute path components (StaticKey, DynamicKey)        |
+| [Operators](./operators.md)          | Binary and unary operators                               |
+| [Params](./params/README.md)         | Function parameter definitions (Param, ParamSet)         |
+| [String](./string/README.md)         | String literal contents (DoubleQuoted, Indented)         |
+| [Antiquoted](./antiquoted/README.md) | String parts with interpolation                          |
 
 ## JSON Representation
 

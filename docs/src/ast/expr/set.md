@@ -93,8 +93,8 @@ rec { x = 1; y = x + 1; }
 
 ## Related
 
-- [Binding](../binding/README.md) — `Inherit` and `NamedVar` constructors
-- [KeyName](../key-name/README.md) — `StaticKey` / `DynamicKey` for attribute paths
+- [Binding](../binding/README.md): `Inherit` and `NamedVar` constructors
+- [KeyName](../key-name/README.md): `StaticKey` / `DynamicKey` for attribute paths
 
 ## Nix Library Access
 

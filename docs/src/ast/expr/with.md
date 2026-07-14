@@ -33,7 +33,7 @@ with pkgs; hello
 
 ## Related
 
-- [Let](./let.md) — similar but with explicit bindings
+- [Let](./let.md): similar but with explicit bindings
 
 ## Nix Library Access
 

@@ -35,9 +35,9 @@ The resulting string content is `"this is a continued line"` (no newline between
 
 ## Related
 
-- [Plain](./plain.md) — literal text
-- [Antiquoted](./antiquoted.md) — embedded expression
-- [Indented](./../string/indented.md) — indented string container
+- [Plain](./plain.md): literal text
+- [Antiquoted](./antiquoted.md): embedded expression
+- [Indented](./../string/indented.md): indented string container
 
 ## Nix Library Access
 

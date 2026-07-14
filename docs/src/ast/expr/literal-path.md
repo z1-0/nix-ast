@@ -14,7 +14,7 @@ LiteralPath FilePath
 
 ## Description
 
-`LiteralPath` represents paths written without angle brackets — relative paths like `./foo.nix`, `../bar.nix`, or absolute paths like `/etc/nixos/configuration.nix`. These are resolved relative to the current file or as absolute paths, distinct from search-path paths.
+`LiteralPath` represents paths written without angle brackets: relative paths like `./foo.nix`, `../bar.nix`, or absolute paths like `/etc/nixos/configuration.nix`. These are resolved relative to the current file or as absolute paths, distinct from search-path paths.
 
 ## Nix Source ↔ AST
 
@@ -53,7 +53,7 @@ LiteralPath FilePath
 
 ## Related
 
-- [EnvPath](./env-path.md) — search paths like `<nixpkgs>`
+- [EnvPath](./env-path.md): search paths like `<nixpkgs>`
 
 ## Nix Library Access
 

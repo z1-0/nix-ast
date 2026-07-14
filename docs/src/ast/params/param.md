@@ -39,9 +39,9 @@ x: x + 1
 
 ## Related
 
-- [ParamSet](./param-set.md) — parameter set constructor
-- [Params](../params/README.md) — the parent sum type
-- [VarName](./../var-name.md) — the parameter name type
+- [ParamSet](./param-set.md): parameter set constructor
+- [Params](../params/README.md): the parent sum type
+- [VarName](./../var-name.md): the parameter name type
 
 ## Nix Library Access
 

@@ -1,6 +1,6 @@
 # Core Functions
 
-The four main functions — `parse`, `render`, `eval`, `toAST`, `fromAST` — bridge between Nix source code, AST values, and evaluated Nix values.
+The four main functions (`parse`, `render`, `eval`, `toAST`, `fromAST`) bridge between Nix source code, AST values, and evaluated Nix values.
 
 All IFD-based functions (`parse`, `render`, `eval`) require a `pkgs` argument (a Nixpkgs instance). They work by serializing inputs to JSON, invoking the `nix-ast` CLI inside a derivation, and parsing the output back.
 
@@ -18,12 +18,12 @@ parse :: pkgs -> [Path] -> [AST]
 
 **Parameters:**
 
-| Parameter | Type       | Description                             |
-|-----------|------------|-----------------------------------------|
-| `pkgs`    | `pkgs`     | Nixpkgs instance (provides `runCommand` and `stdenv` for IFD) |
-| `paths`   | `[Path]`   | List of paths to `.nix` files to parse  |
+| Parameter | Type     | Description                                                   |
+| --------- | -------- | ------------------------------------------------------------- |
+| `pkgs`    | `pkgs`   | Nixpkgs instance (provides `runCommand` and `stdenv` for IFD) |
+| `paths`   | `[Path]` | List of paths to `.nix` files to parse                        |
 
-**Returns:** `[AST]` — A list of AST nodes, one per input file, in the same order.
+**Returns:** `[AST]`. A list of AST nodes, one per input file, in the same order.
 
 **Example:**
 
@@ -54,12 +54,12 @@ render :: pkgs -> [AST] -> [Path]
 
 **Parameters:**
 
-| Parameter | Type     | Description                                |
-|-----------|----------|--------------------------------------------|
-| `pkgs`    | `pkgs`   | Nixpkgs instance (for IFD)                 |
-| `asts`    | `[AST]`  | List of AST nodes to render                |
+| Parameter | Type    | Description                 |
+| --------- | ------- | --------------------------- |
+| `pkgs`    | `pkgs`  | Nixpkgs instance (for IFD)  |
+| `asts`    | `[AST]` | List of AST nodes to render |
 
-**Returns:** `[Path]` — List of store paths to generated `.nix` files. The i-th path corresponds to the i-th input AST.
+**Returns:** `[Path]`. List of store paths to generated `.nix` files. The i-th path corresponds to the i-th input AST.
 
 **Example:**
 
@@ -90,12 +90,12 @@ eval :: pkgs -> [AST] -> [a]
 
 **Parameters:**
 
-| Parameter | Type     | Description                                |
-|-----------|----------|--------------------------------------------|
-| `pkgs`    | `pkgs`   | Nixpkgs instance (for IFD)                 |
-| `asts`    | `[AST]`  | List of AST nodes to evaluate              |
+| Parameter | Type    | Description                   |
+| --------- | ------- | ----------------------------- |
+| `pkgs`    | `pkgs`  | Nixpkgs instance (for IFD)    |
+| `asts`    | `[AST]` | List of AST nodes to evaluate |
 
-**Returns:** `[a]` — List of evaluated Nix values, serialized to JSON-compatible Nix values (atoms, lists, attrsets).
+**Returns:** `[a]`. List of evaluated Nix values, serialized to JSON-compatible Nix values (atoms, lists, attrsets).
 
 **Constraints:** Only JSON-serializable values are supported. Functions and derivations in the evaluation result cause errors.
 
@@ -115,7 +115,7 @@ result = lib.eval pkgs [ast];  # => [ { x = 3; } ]
 
 ## `toAST`
 
-Convert any native Nix value to its AST representation. Pure function — no IFD required.
+Convert any native Nix value to its AST representation. A pure function with no IFD required.
 
 ```nix
 toAST :: a -> AST
@@ -125,16 +125,16 @@ toAST :: a -> AST
 
 **Supported types:**
 
-| Nix type     | AST representation                   |
-|-------------|--------------------------------------|
-| `Bool`      | `Constant (Bool b)`                  |
-| `Int`       | `Constant (Int i)`                   |
-| `Float`     | `Constant (Float f)`                 |
-| `null`      | `Constant Null`                      |
-| `String`    | `Str (DoubleQuoted [Plain s])`       |
-| `Path`      | `LiteralPath`                        |
-| `List`      | `List [items...]`                    |
-| `AttrSet`   | `Set { recursive = false, bindings = [...] }` |
+| Nix type  | AST representation                            |
+| --------- | --------------------------------------------- |
+| `Bool`    | `Constant (Bool b)`                           |
+| `Int`     | `Constant (Int i)`                            |
+| `Float`   | `Constant (Float f)`                          |
+| `null`    | `Constant Null`                               |
+| `String`  | `Str (DoubleQuoted [Plain s])`                |
+| `Path`    | `LiteralPath`                                 |
+| `List`    | `List [items...]`                             |
+| `AttrSet` | `Set { recursive = false, bindings = [...] }` |
 
 **Unsupported types:** Functions and derivations raise an error.
 
@@ -163,7 +163,7 @@ lib.toAST { x = 1; y = [1 2 3]; };
 
 ## `fromAST`
 
-Convert an AST back to a native Nix value. Pure function — runs entirely in Nix, no IFD.
+Convert an AST back to a native Nix value. A pure function that runs entirely in Nix with no IFD.
 
 ```nix
 fromAST :: AST -> a
@@ -173,14 +173,14 @@ fromAST :: AST -> a
 
 **Supported node conversions:**
 
-| AST node       | Nix type     | Notes                              |
-|----------------|--------------|------------------------------------|
-| `Constant`     | atom value   | Int, Float, Bool, Null, Uri        |
-| `Str`          | `String`     | Concatenates parts; only `Str` and text in interpolation |
-| `EnvPath`      | `String`     | Returns the path string directly   |
-| `LiteralPath`  | `String`     | Returns the path string directly   |
-| `List`         | `List`       | Recursively converts elements      |
-| `Set`          | `AttrSet`    | Only non-recursive sets            |
+| AST node      | Nix type   | Notes                                                    |
+| ------------- | ---------- | -------------------------------------------------------- |
+| `Constant`    | atom value | Int, Float, Bool, Null, Uri                              |
+| `Str`         | `String`   | Concatenates parts; only `Str` and text in interpolation |
+| `EnvPath`     | `String`   | Returns the path string directly                         |
+| `LiteralPath` | `String`   | Returns the path string directly                         |
+| `List`        | `List`     | Recursively converts elements                            |
+| `Set`         | `AttrSet`  | Only non-recursive sets                                  |
 
 **Limitations:**
 

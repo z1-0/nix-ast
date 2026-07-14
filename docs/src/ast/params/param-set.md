@@ -108,8 +108,8 @@ args @ { x, y }: args.x + args.y
 
 ## Related
 
-- [Param](./param.md) — single parameter constructor
-- [Params](../params/README.md) — the parent sum type
+- [Param](./param.md): single parameter constructor
+- [Params](../params/README.md): the parent sum type
 
 ## Nix Library Access
 

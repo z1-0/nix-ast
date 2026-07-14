@@ -73,7 +73,7 @@ appInfo :: ParserInfo Command
 appInfo =
     info
         (subcommands <**> helper <**> versionInfo)
-        ( progDesc "nix-ast: Parse and generate Nix expressions via hnix"
+        ( progDesc "nix-ast: Parse and generate Nix expressions"
             <> header "nix-ast - Nix AST tool"
         )
 

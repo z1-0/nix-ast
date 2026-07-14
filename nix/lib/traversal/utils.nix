@@ -1,5 +1,7 @@
-# Internal helpers for extracting children from non-Expr container nodes
-# and rebuilding them. Used by traversal/default.nix.
+/**
+  Internal helpers for extracting children from non-Expr container nodes
+  and rebuilding them. Used by traversal/default.nix.
+*/
 let
   inherit (builtins) concatMap elemAt head length tail;
   match = import ../match.nix;
@@ -13,15 +15,24 @@ let
       in go next.result next.index rest;
     in go init 0 list;
 in rec {
-  # stringChildren :: Node -> [Node]
-  # Extract antiquoted expressions from a String node (DoubleQuoted/Indented)
+
+  /**
+    Extract antiquoted expressions from a String node.
+
+    Supports `DoubleQuoted` and `Indented` nodes.
+
+    # Type: stringChildren :: Node -> [Node]
+  */
   stringChildren = s: match s {
     DoubleQuoted = dq: extractAntiquoted dq.contents;
     Indented = ind: extractAntiquoted ind.parts;
   };
 
-  # keyChildren :: Node -> [Node]
-  # Extract expressions from a KeyName node
+  /**
+    Extract expressions from a KeyName node.
+
+    # Type: keyChildren :: Node -> [Node]
+  */
   keyChildren = key: match key {
     DynamicKey = { contents, ... }: match contents {
       Antiquoted = { contents, ... }: [ contents ];
@@ -31,8 +42,11 @@ in rec {
     StaticKey = _: [ ];
   };
 
-  # rebuildString :: Node -> [Node] -> Int -> { result :: Node, index :: Int }
-  # Rebuild a String node by replacing antiquoted expressions with new children.
+  /**
+    Rebuild a String node by replacing antiquoted expressions with new children.
+
+    # Type: rebuildString :: Node -> [Node] -> Int -> { result :: Node, index :: Int }
+  */
   rebuildString = s: cs: index:
     let parts = match s {
       DoubleQuoted = dq: dq.contents;
@@ -51,8 +65,11 @@ in rec {
       index = rebuilt.index;
     };
 
-  # rebuildKeyPath :: [Node] -> Int -> [Node] -> { result :: [Node], index :: Int }
-  # Rebuild a key path by replacing antiquoted expressions with new children.
+  /**
+    Rebuild a key path by replacing antiquoted expressions with new children.
+
+    # Type: rebuildKeyPath :: [Node] -> Int -> [Node] -> { result :: [Node], index :: Int }
+  */
   rebuildKeyPath = cs: index: keys:
     let step = acc: i: k: match k {
       DynamicKey = kn: match kn.contents {
@@ -66,14 +83,22 @@ in rec {
       StaticKey = _: { result = acc ++ [ k ]; index = i; };
     }; in foldlWithIndex step [ ] keys;
 
-  # bindingChildren :: [Binding] -> [Node]
+  /**
+    Extract child nodes from a list of Bindings.
+
+    # Type: bindingChildren :: [Binding] -> [Node]
+  */
   bindingChildren = bindings:
     concatMap (b: match b {
       Inherit = { scope, ... }: if scope != null then [ scope ] else [ ];
       NamedVar = { value, attrPath, ... }: [ value ] ++ concatMap keyChildren attrPath;
     }) bindings;
 
-  # rebuildBindings :: [Node] -> [Binding] -> [Binding]
+  /**
+    Rebuild a list of Bindings by replacing children with new nodes.
+
+    # Type: rebuildBindings :: [Node] -> [Binding] -> [Binding]
+  */
   rebuildBindings = cs: bindings:
     let step = acc: index: b: match b {
       Inherit = { scope, ... }:
@@ -87,8 +112,11 @@ in rec {
     rebuilt = foldlWithIndex step [ ] bindings;
     in rebuilt.result;
 
-  # paramsChildren :: Params -> [Node]
-  # Extract Expr children from a Params node (defaults in ParamSet).
+  /**
+    Extract Expr children from a Params node (defaults in ParamSet).
+
+    # Type: paramsChildren :: Params -> [Node]
+  */
   paramsChildren = params: match params {
     Param = _: [ ];
     ParamSet = ps: concatMap (pair:
@@ -97,8 +125,11 @@ in rec {
     ) ps.params;
   };
 
-  # rebuildParams :: [Node] -> Int -> Params -> { result :: Params, index :: Int }
-  # Rebuild a Params node by replacing default expressions with new children.
+  /**
+    Rebuild a Params node by replacing default expressions with new children.
+
+    # Type: rebuildParams :: [Node] -> Int -> Params -> { result :: Params, index :: Int }
+  */
   rebuildParams = cs: index: params: match params {
     Param = _: { result = params; index = index; };
     ParamSet = ps:

@@ -7,21 +7,32 @@ let
 in rec {
   inherit match syntax traversal;
 
-  # eval :: pkgs -> [AST] -> [a]
-  # Evaluate ASTs to Nix values. Only JSON-serializable values supported.
-  # NOTE: IFD (Import From Derivation).
+  /**
+    Evaluate ASTs to Nix values. Only JSON-serializable values supported.
+
+    # Type: eval :: pkgs -> [AST] -> [a]
+    # NOTE: IFD (Import From Derivation).
+  */
   eval = pkgs: asts: builtins.fromJSON (builtins.readFile (pkgs.runCommand "nix-ast-eval" {
     nativeBuildInputs = [ (nix-ast-cli pkgs) ];
   } "nix-ast eval < ${pkgs.writeText "asts.json" (builtins.toJSON asts)} > $out"));
 
-  # parse :: pkgs -> [Path] -> [AST]
-  # Parse .nix files into AST values. NOTE: IFD.
+  /**
+    Parse .nix files into AST values.
+
+    # Type: parse :: pkgs -> [Path] -> [AST]
+    # NOTE: IFD (Import From Derivation).
+  */
   parse = pkgs: paths: builtins.fromJSON (builtins.readFile (pkgs.runCommand "nix-ast-parse" {
     nativeBuildInputs = [ (nix-ast-cli pkgs) ];
   } "nix-ast parse < ${pkgs.writeText "paths.json" (builtins.toJSON paths)} > $out"));
 
-  # render :: pkgs -> [AST] -> [Path]
-  # Render ASTs to importable .nix files (named <n>.nix by index). NOTE: IFD.
+  /**
+    Render ASTs to importable .nix files (named `<n>`.nix by index).
+
+    # Type: render :: pkgs -> [AST] -> [Path]
+    # NOTE: IFD (Import From Derivation).
+  */
   render = pkgs: asts:
     let dir = pkgs.runCommand "nix-ast-render" { nativeBuildInputs = [ (nix-ast-cli pkgs) ]; } ''
       mkdir -p $out
@@ -29,9 +40,12 @@ in rec {
     '';
     in lib.imap0 (i: _: "${dir}/${toString i}.nix") asts;
 
-  # toAST :: a -> AST
-  # Convert a Nix value to its AST (recurses into attrsets and lists).
-  # Functions and derivations will raise an error.
+  /**
+    Convert a Nix value to its AST (recurses into attrsets and lists).
+
+    # Type: toAST :: a -> AST
+    # WARNING: Functions and derivations will raise an error.
+  */
   toAST = value:
     let go = v: with builtins;
       if isBool v then syntax.mkBool v
@@ -49,10 +63,16 @@ in rec {
       else throw "toAST: unsupported Nix type";
     in go value;
 
-  # fromAST :: AST -> a
-  # Convert an AST to a Nix value (inverse of toAST).
-  # Pure evaluation — no IFD, runs entirely in Nix.
-  # Paths returned as strings; interpolation only supports Str nodes or plain text.
+  /**
+    Convert an AST to a Nix value (inverse of toAST).
+
+    # Type: fromAST :: AST -> a
+
+    # NOTE:
+    - Pure evaluation, no IFD, runs entirely in Nix.
+    - Paths returned as strings.
+    - Interpolation only supports Str nodes or plain text.
+  */
   fromAST = ast:
     let
       go = node: match node {

@@ -4,13 +4,13 @@ Functions for parsing, constructing, matching, and transforming Nix AST nodes.
 
 ## Overview
 
-The API is organized into three conceptual layers:
+The API is organized into three layers:
 
-| Layer                | Functions                      | Description                                                       |
-| -------------------- | ------------------------------ | ----------------------------------------------------------------- |
-| **IFD bridge**       | `parse`, `render`, `eval`      | Bridge to the Haskell parser/evaluator via Import From Derivation |
-| **Value conversion** | `toAST`, `fromAST`             | Pure Nix conversion between Nix values and AST nodes              |
-| **AST tools**        | `match`, `syntax`, `traversal` | Pattern matching, constructors, and tree operations               |
+| Layer            | Functions                      | Description                                                       |
+| ---------------- | ------------------------------ | ----------------------------------------------------------------- |
+| IFD bridge       | `parse`, `render`, `eval`      | Bridge to the Haskell parser/evaluator via Import From Derivation |
+| Value conversion | `toAST`, `fromAST`             | Pure Nix conversion between Nix values and AST nodes              |
+| AST tools        | `match`, `syntax`, `traversal` | Pattern matching, constructors, and tree operations               |
 
 ## Pages
 
@@ -30,7 +30,7 @@ The API is organized into three conceptual layers:
 3. Captures stdout as the derivation output
 4. Reads back the output with `builtins.readFile` + `builtins.fromJSON`
 
-This means these functions have IFD (Import From Derivation) semantics: they work in `nix build` and `nix eval` but are unavailable in restricted evaluation modes like `nix-instantiate --eval`.
+These functions have IFD (Import From Derivation) semantics: they work in `nix build` and `nix eval` but are unavailable in restricted evaluation modes like `nix-instantiate --eval`.
 
 ## Quick Example
 

@@ -2,9 +2,7 @@
 
 The four main functions (`parse`, `render`, `eval`, `toAST`, `fromAST`) bridge between Nix source code, AST values, and evaluated Nix values.
 
-All IFD-based functions (`parse`, `render`, `eval`) require a `pkgs` argument (a Nixpkgs instance). They work by serializing inputs to JSON, invoking the `nix-ast` CLI inside a derivation, and parsing the output back.
-
----
+All IFD-based functions (`parse`, `render`, `eval`) require a `pkgs` argument (a Nixpkgs instance). They serialize inputs to JSON, invoke the `nix-ast` CLI inside a derivation, and parse the output back.
 
 ## `parse`
 
@@ -14,7 +12,7 @@ Read `.nix` files from disk and return their AST representations. Uses `nix-ast 
 parse :: pkgs -> [Path] -> [AST]
 ```
 
-**How it works:** The function takes a list of file paths, serializes them to JSON, writes them to a temporary file, runs `nix-ast parse < paths.json` in a derivation, then parses the JSON output back into Nix values. The CLI performs concurrent file I/O (up to 50 parallel reads) for efficiency.
+**How it works:** Serializes file paths to JSON, runs `nix-ast parse < paths.json` in a derivation, then parses the JSON output back into Nix values.
 
 **Parameters:**
 
@@ -40,8 +38,6 @@ ast = builtins.head asts;
 
 **Error behavior:** If a file doesn't exist or contains invalid Nix syntax, the derivation fails at build time with an error message indicating which file and the parser error.
 
----
-
 ## `render`
 
 Convert AST values to `.nix` files on disk. The inverse of `parse`.
@@ -50,7 +46,7 @@ Convert AST values to `.nix` files on disk. The inverse of `parse`.
 render :: pkgs -> [AST] -> [Path]
 ```
 
-**How it works:** Serializes ASTs to JSON, pipes them through `nix-ast render --out-dir $out`, which writes each AST to a file named by its index (`0.nix`, `1.nix`, etc.) inside the derivation output directory. Returns the list of resulting store paths.
+**How it works:** Serializes ASTs to JSON, pipes them through `nix-ast render --out-dir $out`, which writes each AST to a file named by its index (`0.nix`, `1.nix`, etc.) inside the derivation output directory.
 
 **Parameters:**
 
@@ -75,8 +71,6 @@ imported = map import outPaths;
 ```
 
 **Error behavior:** If an AST is structurally invalid (e.g., missing required fields), the conversion to internal representation fails with a descriptive error.
-
----
 
 ## `eval`
 
@@ -110,8 +104,6 @@ result = lib.eval pkgs asts;  # evaluated values
 ast = lib.toAST { x = 1 + 2; };
 result = lib.eval pkgs [ast];  # => [ { x = 3; } ]
 ```
-
----
 
 ## `toAST`
 
@@ -159,8 +151,6 @@ lib.toAST { x = 1; y = [1 2 3]; };
 - `toAST` on a derivation: `"toAST: cannot convert derivation to AST"`
 - Unrecognized type: `"toAST: unsupported Nix type"`
 
----
-
 ## `fromAST`
 
 Convert an AST back to a native Nix value. A pure function that runs entirely in Nix with no IFD.
@@ -169,7 +159,7 @@ Convert an AST back to a native Nix value. A pure function that runs entirely in
 fromAST :: AST -> a
 ```
 
-**How it works:** Uses `match` to dispatch on the AST node tag and recursively converts nodes to native Nix values. Atoms become their Nix equivalents, strings are concatenated from their parts (with interpolation support for `Str` nodes and plain text), lists are mapped element-wise, and non-recursive attrsets are reconstructed from bindings.
+**How it works:** Dispatches on the AST node tag via `match` and recursively converts nodes to native Nix values. Atoms become their Nix equivalents, strings are concatenated from their parts, lists are mapped element-wise, and non-recursive attrsets are reconstructed from bindings.
 
 **Supported node conversions:**
 
@@ -200,11 +190,9 @@ lib.fromAST ast;
 assert lib.fromAST (lib.toAST [1 2 3]) == [1 2 3];
 ```
 
----
-
 ## Workflow Example
 
-Putting it all together: parse a Nix file, transform it, render the result, and verify via eval.
+Parse a Nix file, transform it, render the result, and verify via eval.
 
 ```nix
 let

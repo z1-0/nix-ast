@@ -24,8 +24,6 @@ The CLI has three subcommands: `eval`, `parse`, `render`. Each operates in two m
 
 When stdin is a TTY and no direct flag is given, the CLI shows the subcommand's help text instead of hanging.
 
----
-
 ## Eval
 
 Evaluate AST values and output the results as JSON. This is the CLI equivalent of `nix eval` but operates on AST JSON rather than source code.
@@ -63,8 +61,6 @@ cat asts.json | nix-ast eval
 # Pipe from parse: parse then evaluate
 nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 ```
-
----
 
 ## Parse
 
@@ -128,8 +124,6 @@ The AST is a JSON object with a `tag` field identifying the node type, plus type
 
 For a complete reference of all node types with their JSON shapes, see the [AST Reference](../ast/README.md).
 
----
-
 ## Render
 
 Convert AST JSON back to formatted Nix source code.
@@ -186,8 +180,6 @@ cat asts.json | nix-ast render
 ```
 
 For list/multiline outputs, each AST is pretty-printed independently.
-
----
 
 ## Shell Workflow Examples
 

@@ -34,24 +34,24 @@ inputs.nix-ast.url = "github:z1-0/nix-ast";
 
 The library exposes three main API groups via `inputs.nix-ast.lib`:
 
-| API                                      | Description                                        |
-| ---------------------------------------- | -------------------------------------------------- |
-| `lib.parse` `lib.render` `lib.eval`      | IFD-based: bridge to hnix's parser/evaluator       |
-| `lib.toAST` `lib.fromAST`                | Pure Nix: convert between Nix values and AST nodes |
-| `lib.match` `lib.syntax` `lib.traversal` | Work with AST nodes after they're constructed      |
+| API                                      | Description                                   |
+| ---------------------------------------- | --------------------------------------------- |
+| `lib.parse` `lib.render` `lib.eval`      | IFD-based: bridge to hnix's parser/evaluator  |
+| `lib.toAST` `lib.fromAST`                | Pure Nix: convert between Nix values and ASTs |
+| `lib.match` `lib.syntax` `lib.traversal` | Work with AST nodes after construction        |
 
 ```nix
-# Parse → Transform → Render
+# Parse -> Transform -> Render
 asts = lib.parse pkgs [./config.nix];
 transformed = lib.traversal.transform (node: ...) (builtins.head asts);
 outPaths = lib.render pkgs [transformed];
 config = import (builtins.head outPaths);
 
-# Or: Parse → Evaluate (skip rendering)
+# Parse -> Evaluate (skip rendering)
 result = lib.eval pkgs asts;
 ```
 
-### Using the CLI
+### CLI
 
 ```bash
 # Parse from expression string
@@ -69,11 +69,9 @@ nix-ast render < asts.json --out-dir ./out
 # Evaluate AST using hnix
 nix-ast eval --json '{"tag":"Constant","contents":{"tag":"Int","contents":42}}'
 
-# Pipe workflow: parse → eval
+# Pipe workflow: parse -> eval
 nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 ```
-
----
 
 ## Architecture
 
@@ -85,7 +83,7 @@ nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 │       │           │           │                         │
 │       ▼           ▼           ▼                         │
 │  ┌──────────────────────────────┐                       │
-│  │  IFD: nix-ast CLI (Haskell)  │  ← hnix parser/eval   │
+│  │  IFD: nix-ast CLI (Haskell)  │  <- hnix parser/eval  │
 │  └──────────────────────────────┘                       │
 │                                                         │
 │  lib.toAST  lib.fromAST  (pure Nix, no IFD)             │
@@ -93,7 +91,7 @@ nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 └─────────────────────────────────────────────────────────┘
 ```
 
-The library is layered: `parse`/`render`/`eval` bridge to Haskell through IFD derivations, while `toAST`/`fromAST`/`match`/`syntax`/`traversal` operate entirely in pure Nix on the resulting AST values.
+`parse`/`render`/`eval` go through Haskell via IFD. `toAST`/`fromAST`/`match`/`syntax`/`traversal` run in pure Nix on the AST values.
 
 ## Installation
 
@@ -103,6 +101,17 @@ nix run github:z1-0/nix-ast -- parse --expr '{ x = 1; }'
 
 # Or add to your flake inputs
 inputs.nix-ast.url = "github:z1-0/nix-ast";
+```
+
+### Binary Cache
+
+Use the [Cachix](https://z1-0.cachix.org) cache to skip building from source.
+
+```nix
+nix.settings = {
+  substituters = [ "https://z1-0.cachix.org" ];
+  trusted-public-keys = [ "z1-0.cachix.org-1:FS7lPgL0StRBOPrlu0RgdCL7LafUI23+U6Iivdw5QK8=" ];
+};
 ```
 
 ## Learn more

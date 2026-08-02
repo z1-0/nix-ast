@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/z1-0/nix-ast/compare/v0.6.0...v0.6.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* parenthesize select-on-application receivers when rendering ([#21](https://github.com/z1-0/nix-ast/issues/21)) ([3e4a85a](https://github.com/z1-0/nix-ast/commit/3e4a85a3c3f8774c73e8fe23f2b6cad074d178b4))
+* unify UTF-8 encoding across all I/O paths ([#22](https://github.com/z1-0/nix-ast/issues/22)) ([5e0da34](https://github.com/z1-0/nix-ast/commit/5e0da34bd36fd23f37f89c6aed07200884bb2f99))
+
 ## [0.6.0](https://github.com/z1-0/nix-ast/compare/v0.5.0...v0.6.0) (2026-07-14)
 
 

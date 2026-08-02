@@ -2,14 +2,13 @@
 
 module Main (main) where
 
-import Data.Aeson (decode, encode)
+import Data.Aeson (decode, encode, eitherDecode)
 import Data.Fix (Fix (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text (Text)
 import Data.Text qualified as T
 import Nix.Expr.Types qualified as HT
 import Nix.Parser (parseNixText)
-import Data.Aeson qualified as A
 import NixAST
 import Test.QuickCheck
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -46,17 +45,16 @@ mkTest (name, src) =
                 Nothing -> assertFailure "JSON decode failed (type mismatch)"
                 Just ourExpr -> case fromExpr ourExpr of
                     Left err -> assertFailure ("fromExpr failed: " <> T.unpack err)
-                    Right hnixBack -> do
-                        let src2 = renderNix hnixBack
-                        case parseNixText src2 of
+                    Right hnixBack ->
+                        case parseNixText (renderNix hnixBack) of
                             Left err ->
                                 assertFailure
                                     ( "Re-parse failed: "
                                         <> show err
                                         <> "\n  src: "
                                         <> show src
-                                        <> "\n  src2: "
-                                        <> show src2
+                                        <> "\n  rendered: "
+                                        <> show (renderNix hnixBack)
                                     )
                             Right expr2 ->
                                 stripPositions expr @?= stripPositions expr2
@@ -74,14 +72,15 @@ mkJsonTest (name, src) =
         Left err -> assertFailure (show err)
         Right expr -> do
             let json = encode (toExpr expr)
-            case A.eitherDecode @Expr json of
+            case eitherDecode @Expr json of
                 Left err -> assertFailure ("JSON decode failed: " <> err)
                 Right decoded -> case fromExpr decoded of
                     Left err -> assertFailure ("fromExpr failed: " <> T.unpack err)
-                    Right nExpr -> case parseNixText (renderNix nExpr) of
-                        Left err ->
-                            assertFailure ("Re-parse after roundtrip failed: " <> show err)
-                        Right expr2 -> stripPositions expr @?= stripPositions expr2
+                    Right nExpr ->
+                        case parseNixText (renderNix nExpr) of
+                            Left err ->
+                                assertFailure ("Re-parse after roundtrip failed: " <> show err)
+                            Right expr2 -> stripPositions expr @?= stripPositions expr2
 
 ----------------------------------------------------------------------
 -- Test cases by category
@@ -124,10 +123,22 @@ cases =
       ("list", "[1 2 3]")
     , ("empty list", "[]")
     , ("nested list", "[1 [2 3] 4]")
-    , -- Attribute access
+    ,     -- Attribute access
       ("attr access", "x.y.z")
     , ("deep attr access", "a.b.c.d")
     , ("select with default", "x.y or 1")
+    , -- Select on application (hnix pretty-print bug, see issue #20)
+      ("select on app", "(f x).y")
+    , ("select on import", "(import ./helper.nix).helper")
+    , ("select on app chain", "((f x) y).z")
+    , ("select on lambda", "(x: x).y")
+    , ("select on with", "(with pkgs; x).y")
+    , ("select on set", "({ x = 1; }).x")
+    , ("select on binary", "(1 + 2).x")
+    , ("select on if", "(if true then 1 else 2).x")
+    , ("select on let", "(let y = 1; in y).x")
+    , ("select chain", "a.b.c")
+    , ("app chain", "f x y")
     , -- Parameters
       ("param set", "{ x, y }: x + y")
     , ("param set default", "{ x ? 1 }: x")
@@ -160,7 +171,7 @@ batchRoundtripTests = testGroup "batch roundtrip"
             result = traverse (fmap toExpr . parseNix) srcs
         case result of
             Left err -> assertFailure (T.unpack err)
-            Right exprs -> case A.decode @[Expr] (encode exprs) of
+            Right exprs -> case decode @[Expr] (encode exprs) of
                 Nothing -> assertFailure "encode/decode roundtrip failed"
                 Just decoded -> length decoded @?= 3
 
@@ -386,6 +397,7 @@ parseOrDie s = case parseNixText s of
     Right e -> stripPositions e
     Left _  -> error "impossible"
 
+-- | AST comparison without position annotations
 stripPositions :: HT.NExpr -> HT.NExpr
 stripPositions (Fix x) = Fix (go x)
   where
@@ -412,7 +424,8 @@ stripPositions (Fix x) = Fix (go x)
     stripBinding (HT.Inherit scope names _) = HT.Inherit scope names HT.nullPos
 
     stripParams (HT.Param n) = HT.Param n
-    stripParams (HT.ParamSet n v ps) = HT.ParamSet n v ps
+    stripParams (HT.ParamSet n v ps) =
+        HT.ParamSet n v [ (nm, fmap stripPositions md) | (nm, md) <- ps ]
 
     stripNString (HT.DoubleQuoted parts) = HT.DoubleQuoted parts
     stripNString (HT.Indented n parts) = HT.Indented n parts

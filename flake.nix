@@ -22,24 +22,35 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        hpkgs = pkgs.haskellPackages;
-        hlib = pkgs.haskell.lib;
+
+        # Patch hnix so that select-on-application keeps its parentheses
+        # (see issue #20; upstream hnix unfixed in 0.17.0).
+        hpkgs = pkgs.haskellPackages.extend (
+          self: super: {
+            hnix = super.hnix.overrideAttrs (old: {
+              doCheck = false;
+              doHaddock = false;
+              patches = (old.patches or [ ]) ++ [ ./patches/hnix-nselect-parens.patch ];
+            });
+          }
+        );
+
         nix-ast-dev = hpkgs.callCabal2nix "nix-ast" src { };
 
-        nix-ast-release =
-          (hlib.justStaticExecutables (
-            hlib.appendConfigureFlags (hlib.dontCheck nix-ast-dev) [
+        nix-ast-release = pkgs.haskell.lib.justStaticExecutables (
+          nix-ast-dev.overrideAttrs (old: {
+            doCheck = false;
+            configureFlags = (old.configureFlags or [ ]) ++ [
               "--ghc-option=-O2"
               "--ghc-option=-threaded"
               "--ghc-option=-rtsopts"
               "--ghc-option=-with-rtsopts=-N"
-            ]
-          )).overrideAttrs
-            (old: {
-              postInstall = (old.postInstall or "") + ''
-                remove-references-to -t ${hpkgs.hnix} $out/bin/nix-ast
-              '';
-            });
+            ];
+            postInstall = (old.postInstall or "") + ''
+              remove-references-to -t ${hpkgs.hnix} $out/bin/nix-ast
+            '';
+          })
+        );
       in
       {
         packages = {
@@ -49,6 +60,7 @@
 
         checks = {
           inherit nix-ast-dev;
+
           tests = pkgs.runCommand "nix-ast-tests" {
             requiredTestResults = import ./nix/tests.nix {
               inherit pkgs;

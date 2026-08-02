@@ -1,13 +1,13 @@
 module Main (main) where
 
 import Exec (exec)
-import Parser (appInfo, warnOnTty)
+import GHC.IO.Encoding (setFileSystemEncoding, setLocaleEncoding)
 import Options.Applicative (execParser)
-import System.IO (hSetEncoding, stderr, stdin, stdout, utf8)
+import Parser (appInfo, warnOnTty)
+import System.IO (utf8)
 
 main :: IO ()
 main = do
-    hSetEncoding stdin utf8
-    hSetEncoding stdout utf8
-    hSetEncoding stderr utf8
+    setLocaleEncoding utf8
+    setFileSystemEncoding utf8
     execParser appInfo >>= \cmd -> warnOnTty cmd >> exec cmd

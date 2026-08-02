@@ -2,8 +2,10 @@ module Parser (appInfo, warnOnTty) where
 
 import Command (Command (..))
 import Control.Monad (when)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BL
 import Data.Text (Text, pack)
-import Data.Text.IO qualified as TIO
+import Data.Text.Encoding (encodeUtf8)
 import Data.Version (showVersion)
 import Options.Applicative
 import Options.Applicative.Help (parserHelp, renderHelp)
@@ -79,7 +81,7 @@ appInfo =
 
 showSubcommandHelp :: ParserInfo a -> IO b
 showSubcommandHelp p = do
-    TIO.hPutStrLn stderr $ pack $ renderHelp 80 (parserHelp defaultPrefs (infoParser p))
+    BL.hPutStr stderr (BL.fromStrict (encodeUtf8 (pack (renderHelp 80 (parserHelp defaultPrefs (infoParser p)))) <> "\n"))
     exitFailure
 
 warnOnTty :: Command -> IO ()

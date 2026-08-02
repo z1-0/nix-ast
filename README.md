@@ -2,7 +2,7 @@
 
 > A Nix library that parses, inspects, transforms, and evaluates Nix Abstract Syntax Trees (AST) using Haskell's [hnix](https://github.com/haskell-nix/hnix) parser.
 
-`nix-ast` exposes a full Nix AST API directly in Nix itself (via IFD, Import From Derivation) and uses hnix's Haskell parser and evaluator internally. You can parse any Nix expression into a structured AST, traverse and transform it with pure Nix functions, render it back to source code, and even evaluate it. All from within your Nix expressions.
+`nix-ast` provides the full Nix AST API in Nix itself (via IFD, Import From Derivation) and uses hnix's Haskell parser and evaluator internally. Parse any Nix expression into a structured AST, traverse and transform it with pure Nix functions, render it back to source code, or evaluate it, all from within your Nix expressions.
 
 ---
 
@@ -32,7 +32,7 @@ Add `nix-ast` to your flake inputs:
 inputs.nix-ast.url = "github:z1-0/nix-ast";
 ```
 
-The library exposes three main API groups via `inputs.nix-ast.lib`:
+The library provides three main API groups via `inputs.nix-ast.lib`:
 
 | API                                      | Description                                   |
 | ---------------------------------------- | --------------------------------------------- |
@@ -77,7 +77,7 @@ nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     Nix (your flake)                     │
+│                nix-ast                                  │
 │                                                         │
 │  lib.parse   lib.render   lib.eval                      │
 │       │           │           │                         │
@@ -95,17 +95,35 @@ nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 
 ## Installation
 
+Use `nix-ast` as a CLI tool or as a Nix library.
+
+### CLI (run directly, no installation)
+
 ```bash
 # Run directly without installing
 nix run github:z1-0/nix-ast -- parse --expr '{ x = 1; }'
+```
 
-# Or add to your flake inputs
+### Nix library (via flake inputs)
+
+```nix
+# Add to your flake inputs
 inputs.nix-ast.url = "github:z1-0/nix-ast";
 ```
 
+See [Quick Start](#quick-start) for the library API (`lib.parse`, `lib.render`, ...).
+
 ### Binary Cache
 
-Use the [Cachix](https://z1-0.cachix.org) cache to skip building from source.
+Use the [Cachix](https://z1-0.cachix.org) cache to skip building from source: the binary is built against a **patched hnix 0.17**, so its derivation doesn't match nixpkgs' `hnix`, and nixpkgs' cache can't substitute it.
+
+Quickest way to enable it:
+
+```bash
+cachix use z1-0
+```
+
+Or add it to your NixOS/home-manager config:
 
 ```nix
 nix.settings = {

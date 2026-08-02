@@ -1,0 +1,31 @@
+diff --git a/src/Nix/Pretty.hs b/src/Nix/Pretty.hs
+index 6801923..f9b3e62 100644
+--- a/src/Nix/Pretty.hs
++++ b/src/Nix/Pretty.hs
+@@ -120,6 +120,17 @@ wrapPath op sub =
+     (dquotes $ antiquote sub)
+     (wasPath sub)
+ 
++-- | Render the receiver of an attribute select. A receiver that is a
++--   function application must be parenthesized: @f x.y@ re-parses as
++--   @f (x.y)@, not @(f x).y@. The generic precedence/associativity rules
++--   do not catch this because application and select share both
++--   precedence and associativity.
++selectReceiver :: NixDoc ann -> Doc ann
++selectReceiver sub =
++  if rootOp sub == appOpDef
++    then parens (getDoc sub)
++    else wrap appOpDef sub
++
+ -- | Handle Output representation of the string escape codes.
+ prettyString :: NString (NixDoc ann) -> Doc ann
+ prettyString (DoubleQuoted parts) =
+@@ -288,7 +299,7 @@ exprFNixDoc = \case
+       (mkNixDoc selectOp)
+       (const leastPrecedence)
+       o
+-      $ wrapPath selectOp (mkNixDoc selectOp (wrap appOpDef r')) <> "." <> prettySelector attr <>
++      $ wrapPath selectOp (mkNixDoc selectOp (selectReceiver r')) <> "." <> prettySelector attr <>
+         ((" or " <>) . precedenceWrap appOpDef) `whenJust` o
+    where
+     selectOp :: NOperatorDef

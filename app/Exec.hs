@@ -6,9 +6,10 @@ import Control.Concurrent.Async    (mapConcurrently)
 import Control.Exception           (bracket_)
 import Control.Monad               (forM_)
 import Data.Aeson                  (FromJSON, eitherDecode, encode)
+import Data.ByteString             qualified as BS
 import Data.ByteString.Lazy        qualified as BL
 import Data.Text                   (Text, pack, unpack)
-import Data.Text.Encoding          (encodeUtf8)
+import Data.Text.Encoding          (decodeUtf8', encodeUtf8)
 import Data.Text.IO                qualified as TIO
 import NixAST
 import NixAST.Eval                 (evalAST, evalASTs)
@@ -69,7 +70,8 @@ execParse Nothing = do
     BL.putStr (encode asts <> "\n")
   where
     parseFile path = do
-        src <- TIO.readFile (unpack path)
+        bs <- BS.readFile (unpack path)
+        src <- dieLeft (const (ParseErr $ path <> ": invalid UTF-8")) (decodeUtf8' bs)
         case parseNix src of
             Left err -> die (ParseErr $ path <> ": " <> err)
             Right nixExpr -> pure (toExpr nixExpr)
@@ -80,7 +82,7 @@ execRender (Just _) (Just _) =
 execRender (Just json) Nothing = do
     expr <- decodeExpr json
     nixExpr <- dieLeft ConvErr (fromExpr expr)
-    TIO.putStrLn (renderNix nixExpr)
+    BL.putStr (BL.fromStrict (encodeUtf8 (renderNix nixExpr)) <> "\n")
 execRender Nothing outDir = do
     asts <- getStdinJSON @Expr
     case outDir of
@@ -90,7 +92,7 @@ execRender Nothing outDir = do
         Just dir ->
             forM_ (zip [(0 :: Int) ..] asts) $ \(i, ast) -> do
                 nixExpr <- dieLeft ConvErr (fromExpr ast)
-                TIO.writeFile (dir <> "/" <> show i <> ".nix") (renderNix nixExpr)
+                BS.writeFile (dir <> "/" <> show i <> ".nix") (encodeUtf8 (renderNix nixExpr))
 
 decodeExpr :: Text -> IO Expr
 decodeExpr json = dieLeft (DecodeErr . pack) (eitherDecode @Expr (BL.fromStrict (encodeUtf8 json)))

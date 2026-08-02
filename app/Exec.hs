@@ -10,7 +10,6 @@ import Data.ByteString             qualified as BS
 import Data.ByteString.Lazy        qualified as BL
 import Data.Text                   (Text, pack, unpack)
 import Data.Text.Encoding          (decodeUtf8', encodeUtf8)
-import Data.Text.IO                qualified as TIO
 import NixAST
 import NixAST.Eval                 (evalAST, evalASTs)
 import System.Exit                 (exitFailure)
@@ -32,7 +31,7 @@ displayError = \case
     UsageErr  t -> t
 
 die :: AppError -> IO a
-die err = TIO.hPutStrLn stderr (displayError err) >> exitFailure
+die err = BL.hPutStr stderr (BL.fromStrict (encodeUtf8 (displayError err)) <> "\n") >> exitFailure
 
 dieLeft :: (e -> AppError) -> Either e a -> IO a
 dieLeft _ (Right x) = pure x

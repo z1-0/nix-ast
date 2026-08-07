@@ -84,10 +84,7 @@ in rec {
           Null = _: null;
           _ = _: throw "fromAST: unsupported atom type '${contents.tag}'";
         };
-        Str = { contents, ... }: match contents {
-          DoubleQuoted = { contents, ... }: builtins.concatStringsSep "" (map textFromPart contents);
-          Indented = { parts, ... }: builtins.concatStringsSep "" (map textFromPart parts);
-        };
+        Str = { contents, ... }: textFromString contents;
         EnvPath = { contents, ... }: contents;
         LiteralPath = { contents, ... }: contents;
         List = { contents, ... }: map go contents;
@@ -103,12 +100,18 @@ in rec {
         _ = _: throw "fromAST: unsupported AST node '${node.tag}'";
       };
       textFromPart = part: match part {
-        Plain = { contents, ... }: if builtins.isString contents then contents else go contents;
+        Plain = { contents, ... }:
+          if builtins.isString contents then contents
+          else textFromString contents;
         Antiquoted = { contents, ... }:
           if builtins.isString contents then contents
           else if syntax.isStr contents then go contents
           else throw "fromAST: string interpolation only supports Str nodes or plain text";
         EscapedNewline = _: "";
+      };
+      textFromString = s: match s {
+        DoubleQuoted = { contents, ... }: builtins.concatStringsSep "" (map textFromPart contents);
+        Indented = { parts, ... }: builtins.concatStringsSep "" (map textFromPart parts);
       };
       keyFromKeyName = keyName: match keyName {
         StaticKey = { contents, ... }: contents;

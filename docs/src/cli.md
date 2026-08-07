@@ -55,11 +55,8 @@ Available options:
 # Evaluate a single AST from a JSON string
 nix-ast eval --json '{"tag":"Set","recursive":false,"bindings":[{"tag":"NamedVar","attrPath":[{"tag":"StaticKey","contents":"x"}],"value":{"tag":"Constant","contents":{"tag":"Int","contents":1}}}]}'
 
-# Pipe ASTs from a file (JSON array, one element per line in the array)
+# Evaluate ASTs from a file (JSON array on stdin)
 cat asts.json | nix-ast eval
-
-# Pipe from parse: parse then evaluate
-nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
 ```
 
 ## Parse
@@ -160,9 +157,6 @@ Available options:
 # Render a single AST from string to stdout
 nix-ast render --json '{"tag":"Set","recursive":false,"bindings":[...]}'
 
-# Pipe from parse: parse then render back to source
-nix-ast parse --expr '{ x = 1; }' | nix-ast render
-
 # Render batch to individual files
 cat asts.json | nix-ast render --out-dir ./rendered
 # Creates: ./rendered/0.nix, ./rendered/1.nix, ...
@@ -184,16 +178,14 @@ For list/multiline outputs, each AST is pretty-printed independently.
 ## Shell Workflow Examples
 
 ```bash
-# Parse, transform via jq, and render back
-nix-ast parse --expr '{ x = 1; }' \
-  | jq '.bindings[0].value.contents.contents *= 2' \
+# Parse files, then evaluate the results
+cat paths.json | nix-ast parse | nix-ast eval
+
+# Parse files, then render them back to Nix
+cat paths.json | nix-ast parse | nix-ast render
+
+# Transform ASTs with jq between parse and render
+cat paths.json | nix-ast parse \
+  | jq 'map(.bindings[0].value.contents.contents = 2)' \
   | nix-ast render
-
-# Evaluate and query results
-nix-ast parse --expr '{ inherit (builtins) map filter; }' | nix-ast eval | jq 'keys'
-
-# Batch process multiple files
-echo '["file1.nix", "file2.nix", "file3.nix"]' \
-  | nix-ast parse \
-  | nix-ast render --out-dir ./out
 ```

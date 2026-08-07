@@ -57,8 +57,8 @@ result = lib.eval pkgs asts;
 # Parse from expression string
 nix-ast parse --expr '{ x = 1; }' > ast.json
 
-# Parse files from stdin (one path per line)
-echo ./config.nix | nix-ast parse > ast.json
+# Parse files from stdin (JSON array of paths)
+cat paths.json | nix-ast parse > asts.json
 
 # Render AST back to Nix
 nix-ast render --json '{"tag":"Set","recursive":false,"bindings":[...]}'
@@ -70,7 +70,7 @@ nix-ast render < asts.json --out-dir ./out
 nix-ast eval --json '{"tag":"Constant","contents":{"tag":"Int","contents":42}}'
 
 # Pipe workflow: parse -> eval
-nix-ast parse --expr '{ x = 1 + 2; }' | nix-ast eval
+cat paths.json | nix-ast parse | nix-ast eval
 ```
 
 ## Architecture

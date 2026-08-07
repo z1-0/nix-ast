@@ -66,10 +66,12 @@ in throwTestFailures {
     testFromAST_string = test (fromAST (lit "hi")) "hi";
     testFromAST_list = test (fromAST (syntax.mkList [ (syntax.mkInt 1) (lit "a") ])) [ 1 "a" ];
     testFromAST_set = test (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkStaticKey "x") ] (syntax.mkInt 1)) ])) { x = 1; };
+    testFromAST_dynamicKey = assertThrows (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (dynKey (syntax.mkInt 1)) ] (syntax.mkInt 1)) ]));
+    testFromAST_dynamicKeyPlain = test (fromAST (syntax.mkSet false [ (syntax.mkNamedVar [ (syntax.mkDynamicKey (syntax.mkPlain (syntax.mkDoubleQuoted [ (syntax.mkPlain "a") (syntax.mkAntiquoted (lit "b")) ]))) ] (syntax.mkInt 1)) ])) { ab = 1; };
     testFromAST_recursiveSet = assertThrows (fromAST (syntax.mkSet true []));
     testRender_returnsList = test (builtins.isList (render pkgs [ flakeAST ])) true;
     testRender_pathsAreStrings = test (builtins.all builtins.isString (render pkgs [ flakeAST flakeAST ])) true;
     testRender_twoAsts = test (builtins.length (render pkgs [ flakeAST flakeAST ])) 2;
-    testRoundtrip_simple = let src = "{ a = 1; b = 2; }"; srcFile = pkgs.writeText "test.nix" src; ast = builtins.head (parse pkgs [ srcFile ]); rendered = builtins.head (render pkgs [ ast ]); in test src (builtins.readFile rendered);
+    testRoundtrip_simple = let src = "{ a = 1; b = 2; }"; srcFile = pkgs.writeText "test.nix" src; ast = builtins.head (parse pkgs [ srcFile ]); rendered = builtins.head (render pkgs [ ast ]); in test (src + "\n") (builtins.readFile rendered);
   };
 }

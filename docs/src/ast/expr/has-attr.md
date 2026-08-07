@@ -15,7 +15,7 @@ HasAttr { expr :: Expr, attrPath :: AttrPath }
 
 ## Description
 
-`HasAttr` represents the `?` operator in Nix, which checks whether an attribute exists in a set. Returns a boolean.
+`HasAttr` represents the `?` operator in Nix, which checks whether an attribute exists in a set. The result is a boolean.
 
 ## Nix Source ↔ AST
 

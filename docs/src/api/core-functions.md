@@ -1,6 +1,6 @@
 # Core Functions
 
-The four main functions (`parse`, `render`, `eval`, `toAST`, `fromAST`) bridge between Nix source code, AST values, and evaluated Nix values.
+The five main functions (`parse`, `render`, `eval`, `toAST`, `fromAST`) move between three representations: Nix source code, AST values, and evaluated Nix values.
 
 All IFD-based functions (`parse`, `render`, `eval`) require a `pkgs` argument (a Nixpkgs instance). They serialize inputs to JSON, invoke the `nix-ast` CLI inside a derivation, and parse the output back.
 
@@ -107,7 +107,7 @@ result = lib.eval pkgs [ast];  # => [ { x = 3; } ]
 
 ## `toAST`
 
-Convert any native Nix value to its AST representation. A pure function with no IFD required.
+Convert any native Nix value to its AST representation. No IFD involved.
 
 ```nix
 toAST :: a -> AST
@@ -153,7 +153,7 @@ lib.toAST { x = 1; y = [1 2 3]; };
 
 ## `fromAST`
 
-Convert an AST back to a native Nix value. A pure function that runs entirely in Nix with no IFD.
+Convert an AST back to a native Nix value. Runs entirely in Nix, no IFD.
 
 ```nix
 fromAST :: AST -> a

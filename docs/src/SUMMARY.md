@@ -57,5 +57,4 @@
   - [Indented](./ast/string/indented.md)
 - [AttrPath](./ast/attr-path.md)
 - [Operators](./ast/operators.md)
-- [ParamSet](./ast/param-set.md)
 - [VarName](./ast/var-name.md)

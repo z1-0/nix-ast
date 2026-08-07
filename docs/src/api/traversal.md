@@ -163,7 +163,7 @@ All traversal operations maintain this invariant:
 traversal.rebuild node (traversal.children node) == node
 ```
 
-This ensures that operations can freely decompose and reconstruct nodes without losing information.
+This contract is what lets traversal code take a node apart and rebuild it: anything the rewrite function leaves alone comes back unchanged.
 
 ## Use Cases
 

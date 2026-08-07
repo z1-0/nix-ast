@@ -14,7 +14,7 @@ Constant Atom
 
 ## Description
 
-`Constant` wraps an `Atom` to make it a valid expression node. All literal values in Nix (integers, booleans, null, URIs) are represented as `Constant` containing an `Atom`.
+`Constant` wraps an `Atom` to make it a valid expression node. Integers, booleans, null, and URIs all appear in the AST as `Constant` containing an `Atom`.
 
 ## Nix Source ↔ AST
 

@@ -24,9 +24,9 @@ Used as the `contents` field of:
 
 ## Related
 
-- [Expr](../expr/README.md)
-- [KeyName](../key-name/README.md)
-- [Binding](../binding/README.md)
+- [Expr](./expr/README.md)
+- [KeyName](./key-name/README.md)
+- [Binding](./binding/README.md)
 
 ## Nix Library Access
 

@@ -14,11 +14,7 @@ SynHole VarName
 
 ## Description
 
-`SynHole` represents a placeholder or "hole" in the AST that can be filled later during metaprogramming or code generation. This is useful for:
-
-- Template generation
-- Partial AST construction
-- Code synthesis tools
+`SynHole` is a placeholder in the AST that metaprogramming or code generation fills in later. Typical uses: template generation, building partial ASTs, and code synthesis.
 
 The `VarName` identifies the hole for later substitution.
 

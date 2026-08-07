@@ -41,8 +41,8 @@ Used as the `attrPath` field of:
 
 ## Related
 
-- [KeyName](../key-name/README.md)
-- [Binding](../binding/README.md)
+- [KeyName](./key-name/README.md)
+- [Binding](./binding/README.md)
 
 ## Nix Library Access
 

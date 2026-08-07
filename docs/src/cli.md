@@ -119,7 +119,7 @@ The AST is a JSON object with a `tag` field identifying the node type, plus type
 }
 ```
 
-For a complete reference of all node types with their JSON shapes, see the [AST Reference](../ast/README.md).
+For a complete reference of all node types with their JSON shapes, see the [AST Reference](./ast/README.md).
 
 ## Render
 

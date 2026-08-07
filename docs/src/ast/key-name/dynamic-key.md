@@ -16,11 +16,7 @@ DynamicKey (Antiquoted String)
 
 `DynamicKey` is used for attribute keys that are not static identifiers: either quoted strings like `"foo bar"` or antiquoted expressions like `${name}`. In Nix, any key in quotes or with antiquotation is parsed as a `DynamicKey`.
 
-The contents is an `Antiquoted String`, meaning it can be:
-
-- Plain string parts
-- Antiquoted expressions
-- Escaped newlines (in indented strings)
+The contents is an `Antiquoted String`; each part can be plain text, an antiquoted expression, or an escaped newline (in indented strings).
 
 ## Nix Source ↔ AST
 

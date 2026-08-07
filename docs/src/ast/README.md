@@ -4,13 +4,13 @@ Complete reference for every node type in the Nix AST, organized by type hierarc
 
 ## Quick Overview
 
-The AST is a sum type with 19 expression constructors and supporting types for atoms, bindings, keys, parameters, strings, and antiquoted parts. Every node has a `tag` field (a string identifying the constructor) plus constructor-specific fields.
+The AST is a sum type with 18 expression constructors and supporting types for atoms, bindings, keys, parameters, strings, and antiquoted parts. Every node has a `tag` field (a string identifying the constructor) plus constructor-specific fields.
 
 ## Node Types
 
 | Type                                 | Description                                              |
 | ------------------------------------ | -------------------------------------------------------- |
-| [Expr](./expr/README.md)             | The main expression tree, with 19 constructors           |
+| [Expr](./expr/README.md)             | The main expression tree, with 18 constructors           |
 | [Atom](./atom/README.md)             | Primitive constant values (Bool, Float, Int, Null, Uri)  |
 | [VarName](./var-name.md)             | Identifier name (simple string)                          |
 | [AttrPath](./attr-path.md)           | Non-empty list of `KeyName` for attribute paths          |

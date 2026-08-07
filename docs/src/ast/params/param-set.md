@@ -18,9 +18,9 @@ ParamSet { paramSetName :: Maybe VarName, variadic :: Bool, params :: ParamSet }
 
 ## Description
 
-`ParamSet` represents a function parameter set like `{ x, y ? 1, ... }`. It contains the parameter names, their optional default values, whether it's variadic, and an optional name for the whole set (for `@`-patterns).
+`ParamSet` represents a function parameter set like `{ x, y ? 1, ... }`. The `params` field maps each parameter name to an optional default expression. `variadic` records whether `...` is present, and `paramSetName` holds the name for `@`-patterns.
 
-The inner `ParamSet` field wraps a parameter set type that maps parameter names to optional default expressions.
+The inner `ParamSet` type:
 
 ```
 type ParamSet = [(Text, Maybe Expr)]

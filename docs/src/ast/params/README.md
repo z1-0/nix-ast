@@ -9,9 +9,7 @@
 
 ## Description
 
-`Params` represents function parameters: either a single parameter (`x: body`) or a parameter set (`{ x, y ? 1 }: body`).
-
-The `ParamSet` constructor contains an inner `ParamSet` type which is a map of parameter names to optional default expressions.
+`Params` represents function parameters: either a single parameter (`x: body`) or a parameter set (`{ x, y ? 1 }: body`). The `ParamSet` constructor's inner `params` field maps parameter names to optional default expressions.
 
 ## Pages
 

@@ -14,7 +14,7 @@ Str String
 
 ## Description
 
-`Str` is the expression-level node for strings. It wraps a `String` node which contains the actual string parts (plain text, antiquotations, escaped newlines).
+`Str` is the expression-level node for strings. It wraps a `String` node containing the string parts (plain text, antiquotations, escaped newlines).
 
 ## Nix Source ↔ AST
 

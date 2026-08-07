@@ -94,7 +94,7 @@ execRender Nothing outDir = do
         Just dir ->
             forM_ (zip [(0 :: Int) ..] asts) $ \(i, ast) -> do
                 nixExpr <- dieLeft ConvErr (fromExpr ast)
-                writeFileOrDie (dir <> "/" <> show i <> ".nix") (encodeUtf8 (renderNix nixExpr))
+                writeFileOrDie (dir <> "/" <> show i <> ".nix") (encodeUtf8 (renderNix nixExpr) <> "\n")
 
 readFileOrDie :: FilePath -> IO BS.ByteString
 readFileOrDie p = do

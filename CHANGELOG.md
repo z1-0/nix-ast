@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.2](https://github.com/z1-0/nix-ast/compare/v0.6.1...v0.6.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* convert String nodes in fromAST plain key parts ([21c180a](https://github.com/z1-0/nix-ast/commit/21c180a28731159b94540a1ad26dd3a8f0e5a75e))
+* end rendered files with trailing newline ([8f6652e](https://github.com/z1-0/nix-ast/commit/8f6652eefaf3833af4756d9ecc1734aba66910bd))
+* report I/O errors instead of crashing ([cf8196d](https://github.com/z1-0/nix-ast/commit/cf8196df338e0479856e3a19337247943cd8b91e))
+* thread start index through rebuild traversal ([efdb8fc](https://github.com/z1-0/nix-ast/commit/efdb8fcdc24af5f0d29894389fb1f2200427d56b))
+
 ## [0.6.1](https://github.com/z1-0/nix-ast/compare/v0.6.0...v0.6.1) (2026-08-02)
 
 

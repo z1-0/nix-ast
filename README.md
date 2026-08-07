@@ -140,7 +140,7 @@ nix.settings = {
   - [Syntax](https://z1-0.github.io/nix-ast/api/syntax.html): runtime-validated constructors and predicates
   - [Traversal](https://z1-0.github.io/nix-ast/api/traversal.html): children, rebuild, transform, universe
 - **[AST Reference](https://z1-0.github.io/nix-ast/ast/)**: every node type with fields, JSON representation, and examples
-  - [Expr](https://z1-0.github.io/nix-ast/ast/expr/): 19 expression constructors
+  - [Expr](https://z1-0.github.io/nix-ast/ast/expr/): 18 expression constructors
   - [Atom](https://z1-0.github.io/nix-ast/ast/atom/): primitive constants (Bool, Int, Float, Null, Uri)
   - [Binding](https://z1-0.github.io/nix-ast/ast/binding/): Inherit, NamedVar
   - [KeyName](https://z1-0.github.io/nix-ast/ast/key-name/): StaticKey, DynamicKey
@@ -151,4 +151,4 @@ nix.settings = {
 
 ## License
 
-BSD-3-Clause: see [LICENSE](./LICENSE) for details.
+BSD-3-Clause: see [LICENSE](https://github.com/z1-0/nix-ast/blob/main/LICENSE) for details.

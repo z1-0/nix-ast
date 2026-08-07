@@ -3,7 +3,8 @@ module Exec (exec) where
 import Command                     (Command (..))
 import Control.Concurrent          (newQSem, signalQSem, waitQSem)
 import Control.Concurrent.Async    (mapConcurrently)
-import Control.Exception           (bracket_)
+import Control.Exception           (IOException, bracket_, try)
+import System.IO.Error             (isDoesNotExistError)
 import Control.Monad               (forM_)
 import Data.Aeson                  (FromJSON, eitherDecode, encode)
 import Data.ByteString             qualified as BS
@@ -19,6 +20,7 @@ data AppError
     = ConvErr   Text
     | DecodeErr Text
     | EvalErr   Text
+    | IOErr     Text
     | ParseErr  Text
     | UsageErr  Text
 
@@ -27,6 +29,7 @@ displayError = \case
     ConvErr   t -> "Conversion error: " <> t
     DecodeErr t -> "Decode error: "     <> t
     EvalErr   t -> "Eval error: "       <> t
+    IOErr     t -> "I/O error: "        <> t
     ParseErr  t -> "Parse error: "      <> t
     UsageErr  t -> t
 
@@ -69,7 +72,7 @@ execParse Nothing = do
     BL.putStr (encode asts <> "\n")
   where
     parseFile path = do
-        bs <- BS.readFile (unpack path)
+        bs <- readFileOrDie (unpack path)
         src <- dieLeft (const (ParseErr $ path <> ": invalid UTF-8")) (decodeUtf8' bs)
         case parseNix src of
             Left err -> die (ParseErr $ path <> ": " <> err)
@@ -91,7 +94,23 @@ execRender Nothing outDir = do
         Just dir ->
             forM_ (zip [(0 :: Int) ..] asts) $ \(i, ast) -> do
                 nixExpr <- dieLeft ConvErr (fromExpr ast)
-                BS.writeFile (dir <> "/" <> show i <> ".nix") (encodeUtf8 (renderNix nixExpr))
+                writeFileOrDie (dir <> "/" <> show i <> ".nix") (encodeUtf8 (renderNix nixExpr))
+
+readFileOrDie :: FilePath -> IO BS.ByteString
+readFileOrDie p = do
+    result <- try @IOException (BS.readFile p)
+    case result of
+        Left e | isDoesNotExistError e -> die (IOErr (pack p <> ": no such file"))
+        Left e -> die (IOErr (pack p <> ": " <> pack (show e)))
+        Right bs -> pure bs
+
+writeFileOrDie :: FilePath -> BS.ByteString -> IO ()
+writeFileOrDie p bs = do
+    result <- try @IOException (BS.writeFile p bs)
+    case result of
+        Left e | isDoesNotExistError e -> die (IOErr (pack p <> ": no such directory"))
+        Left e -> die (IOErr (pack p <> ": " <> pack (show e)))
+        Right () -> pure ()
 
 decodeExpr :: Text -> IO Expr
 decodeExpr json = dieLeft (DecodeErr . pack) (eitherDecode @Expr (BL.fromStrict (encodeUtf8 json)))

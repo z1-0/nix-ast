@@ -23,6 +23,44 @@ in throwTestFailures {
     testTraversal_with = let n = syntax.mkWith (syntax.mkSym "ns") (syntax.mkSym "x"); in test (traversal.rebuild n (traversal.children n)) n;
     testTraversal_unary = let n = syntax.mkUnary "!" (syntax.mkBool true); in test (traversal.rebuild n (traversal.children n)) n;
     testTraversal_hasAttr = let n = syntax.mkHasAttr (syntax.mkSym "x") [ (syntax.mkStaticKey "y") ]; in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeySet = let
+      k = syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkInt 99));
+      n = syntax.mkSet false [
+        (syntax.mkNamedVar [ (syntax.mkStaticKey "a") ] (syntax.mkInt 1))
+        (syntax.mkNamedVar [ k ] (syntax.mkInt 2))
+        (syntax.mkNamedVar [ (syntax.mkStaticKey "c") ] (syntax.mkInt 3))
+      ];
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeyHasAttr = let
+      k = syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkInt 99));
+      n = syntax.mkHasAttr (syntax.mkSym "x") [ k (syntax.mkStaticKey "y") ];
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeySelect = let
+      k = syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkInt 99));
+      n = syntax.mkSelect (syntax.mkInt 9) (syntax.mkSym "x") [ k ];
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeySelectNoDefault = let
+      k = syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkInt 99));
+      n = syntax.mkSelect null (syntax.mkSym "x") [ k (syntax.mkStaticKey "deep") ];
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeyLet = let
+      k = syntax.mkDynamicKey (syntax.mkAntiquoted (syntax.mkInt 5));
+      n = syntax.mkLet [ (syntax.mkNamedVar [ k ] (syntax.mkInt 5)) ] (syntax.mkSym "a");
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_dynamicKeyPlainString = let
+      k = syntax.mkDynamicKey (syntax.mkPlain (syntax.mkDoubleQuoted [
+        (syntax.mkPlain "a") (syntax.mkAntiquoted (syntax.mkSym "x")) (syntax.mkPlain "b")
+      ]));
+      n = syntax.mkSet false [ (syntax.mkNamedVar [ k ] (syntax.mkInt 7)) ];
+    in test (traversal.rebuild n (traversal.children n)) n;
+    testTraversal_stringRebuild = let
+      s = syntax.mkStr (syntax.mkDoubleQuoted [
+        (syntax.mkPlain "a") (syntax.mkAntiquoted (syntax.mkInt 1)) (syntax.mkPlain "b")
+      ]);
+    in test (traversal.descend (x: x) s) s;
+    testTraversal_paramSetDefault = let
+      n = syntax.mkAbs (syntax.mkParamSet null false [ [ "x" (syntax.mkInt 1) ] [ "y" ] ]) (syntax.mkSym "x");
+    in test (traversal.rebuild n (traversal.children n)) n;
     testEval_int = test (builtins.head (eval pkgs [ (syntax.mkInt 42) ])) 42;
     testEval_bool = test (builtins.head (eval pkgs [ (syntax.mkBool true) ])) true;
     testParse_flake = test (match flakeAST { Set = _: true; _ = _: false; }) true;

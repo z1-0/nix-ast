@@ -8,12 +8,12 @@ let
   extractAntiquoted = parts: concatMap (p: match p {
     Antiquoted = { contents, ... }: [ contents ]; _ = _: [ ];
   }) parts;
-  foldlWithIndex = step: init: list:
+  foldlWithIndex = step: init: start: list:
     let go = acc: i: xs:
       if xs == [ ] then { result = acc; index = i; }
       else let x = head xs; rest = tail xs; next = step acc i x;
       in go next.result next.index rest;
-    in go init 0 list;
+    in go init start list;
 in rec {
 
   /**
@@ -56,7 +56,7 @@ in rec {
       Antiquoted = pn: { result = acc ++ [ (pn // { contents = elemAt cs i; }) ]; index = i + 1; };
       _ = _: { result = acc ++ [ p ]; index = i; };
     };
-    rebuilt = foldlWithIndex step [ ] parts;
+    rebuilt = foldlWithIndex step [ ] index parts;
     in {
       result = match s {
         DoubleQuoted = _: { tag = "DoubleQuoted"; contents = rebuilt.result; };
@@ -76,12 +76,12 @@ in rec {
         Antiquoted = _:
           { result = acc ++ [ (kn // { contents = kn.contents // { contents = elemAt cs i; }; }) ]; index = i + 1; };
         Plain = { contents, ... }:
-          let r = rebuildString contents cs i; in
-          { result = acc ++ [ (kn // { contents = r.result; }) ]; index = r.index; };
+          let r = rebuildString contents cs i;
+          in { result = acc ++ [ (kn // { contents = (kn.contents // { contents = r.result; }); }) ]; index = r.index; };
         EscapedNewline = _: { result = acc ++ [ kn ]; index = i; };
       };
       StaticKey = _: { result = acc ++ [ k ]; index = i; };
-    }; in foldlWithIndex step [ ] keys;
+    }; in foldlWithIndex step [ ] index keys;
 
   /**
     Extract child nodes from a list of Bindings.
@@ -109,7 +109,7 @@ in rec {
         let p = rebuildKeyPath cs (index + 1) bn.attrPath;
         in { result = acc ++ [ (bn // { value = elemAt cs index; attrPath = p.result; }) ]; index = p.index; };
     };
-    rebuilt = foldlWithIndex step [ ] bindings;
+    rebuilt = foldlWithIndex step [ ] 0 bindings;
     in rebuilt.result;
 
   /**
@@ -120,8 +120,8 @@ in rec {
   paramsChildren = params: match params {
     Param = _: [ ];
     ParamSet = ps: concatMap (pair:
-      if length pair >= 2 && elemAt pair 1 != null
-      then [ elemAt pair 1 ] else [ ]
+      if length pair >= 2 && (builtins.elemAt pair 1) != null
+      then [ (builtins.elemAt pair 1) ] else [ ]
     ) ps.params;
   };
 
@@ -137,8 +137,8 @@ in rec {
         let name = elemAt pair 0;
             hasDefault = length pair >= 2 && elemAt pair 1 != null;
         in if hasDefault then { result = acc ++ [ [name (elemAt cs i)] ]; index = i + 1; }
-           else { result = acc ++ [ [name] ]; index = i; };
-          rebuilt = foldlWithIndex step [ ] ps.params;
+           else { result = acc ++ [ pair ]; index = i; };
+          rebuilt = foldlWithIndex step [ ] index ps.params;
       in { result = ps // { params = rebuilt.result; }; index = rebuilt.index; };
   };
 }

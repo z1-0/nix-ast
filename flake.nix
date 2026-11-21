@@ -21,7 +21,16 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            (final: prev: {
+              haskellPackages = prev.haskellPackages.extend (
+                hfinal: hsuper: { cabal2nix-unstable = prev.lib.getBin hsuper.cabal2nix-unstable; }
+              );
+            })
+          ];
+        };
 
         # Patch hnix so that select-on-application keeps its parentheses
         # (see issue #20; upstream hnix unfixed in 0.17.0).

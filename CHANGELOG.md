@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/z1-0/nix-ast/compare/v0.6.2...v0.7.0) (2026-11-23)
+
+
+### Features
+
+* take cabal2nix-unstable from its bin output ([5c4c67e](https://github.com/z1-0/nix-ast/commit/5c4c67edbb1b62fa7806d60a23a75f27b55fde72))
+
 ## [0.6.2](https://github.com/z1-0/nix-ast/compare/v0.6.1...v0.6.2) (2026-08-19)
 
 
